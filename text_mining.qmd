@@ -1,0 +1,200 @@
+---
+title: "Was liest und schreibt man über Inklusion?"
+subtitle: "Web-Scraping und Text-Mining mit R am Beispiel einer Online-Nachrichten- und Diskussionsseite für Lehrkräfte"
+author: "Pawel R. Kulawiak"
+date: last-modified
+abstract: "Preprint in Progress"
+abstract-title: "Status"
+lang: de
+bibliography: references.bib
+theme: sandstone
+toc: true
+title-block-banner: true
+language: 
+  title-block-author-single: "Autor"
+  title-block-published: "Datum der der letzten Veränderung"
+format:
+  html:
+    embed-resources: false
+    output-file: "index"
+  pdf:
+    geometry:
+      - top=30mm
+      - left=30mm
+      - right=30mm
+      - bottom=30mm
+      - heightrounded
+    fig-pos: H
+---
+
+```{r}
+#| echo: false
+#| include: false
+library(tidyverse)
+library(rvest)
+library(gt)
+library(flextable)
+```
+
+# Einleitung
+
+Mein wertgeschätzter Kollege Timo Lüke (<https://timolueke.de/>) hat einst im Rahmen einer Medieninhaltsanalyse deutschsprachiger Printmedien [@lüke2014] folgende Forschungsfragen aufgeworfen:
+
+-   Welches Verständnis von Inklusion wird in den deutschen meinungsführenden Medien kommuniziert?
+-   Welche Argumente für und gegen die Umsetzung von Inklusion werden genannt?
+-   Welche Fallbeispiele werden als Belege angeführt?
+
+> "Im Rahmen einer systematischen Inhaltsanalyse (Rössler, 2010) deutscher Printmedien untersuchen wir die öffentliche Berichterstattung zum Thema „Inklusion". Dabei wollen wir verbreitete Definitionen, Argumente und Fallbeispiele systematisch erfassen. So sollen langfristig die Analyse des medialen Diskurses und in der Folge eine Versachlichung der kontroversen Debatte über Inklusion ermöglicht werden." [@lüke2014]
+
+Erste Ergebnisse der Medieninhaltsanalyse sind in Form einer Posterpräsentation verfügbar [@lüke2014] und ich erlaube mir die Darstellung des interessanten Posters (@fig-poster).
+
+::: column-body-outset
+![Posterpräsentation von @lüke2014: Was liest man über Inklusion?](images/poster.png){#fig-poster fig-alt="Posterpräsentation von @lüke2014: Was liest man über Inklusion?"}
+:::
+
+# Ziele
+
+## Allgemeine Zielsetzung
+
+Ich möchte die Medieninhaltsanalyse von @lüke2014 replizieren sowie erweitern und mich dabei auf die Textinhalte einer Online-Nachrichten- und Diskussionsseite für Lehrkräfte fokussieren, nämlich News4teachers [@N4T_2022].
+
+## Zielsetzung mit R
+
+Ich möchte exemplarisch aufzeigen, wie die einzelnen Projektphasen der Medieninhaltsanalyse mit der Programmiersprache R umgesetzt werden können. Hierfür werden wir uns auf zwei wichtige Arbeitsschritte fokussieren:
+
+-   **Web-Scraping**, also eine automatisierte Methode zum Extrahieren der Textinformationen von der Webseite News4teachers.
+
+-   **Text-Mining**: Die mittels Web-Scraping gesammelten Textdaten sollen mit Methoden des Text-Minings analysiert werden. Methoden des Text-Minings fokussieren sich auf die Extraktion von nützlichen Informationen aus unstrukturierten Textdaten. Unstrukturierte Textdaten sind Texte, die nicht in einer festen Datenbankstruktur vorliegen, also z.B. Textinhalte von Websiten. Mit Methoden des Text-Minings kann auch der der sentimentale Ton oder die subjektive Meinung in einem Textdokument ermittelt werden. Das Hauptziel der sogenannten Sentimentanalyse besteht darin, die in einem Textdokument geäußerten Emotionen und Ansichten bezüglich eines bestimmten Themas zu identifizieren, in unserem Fall also z.B. geäußerte Meinungen zum Thema Inklusion.
+
+# News4teachers: Online-Nachrichten- und Diskussionsseite für Lehrkräfte
+
+Betrachten wir zunächst das Arbeitsmaterial, also die Webinhalte der Webseite News4teachers, und die entsprechende Selbstbeschreibung der Webseite [@N4T_2022]:
+
+> "**Wer steckt hinter News4teachers?**
+>
+> News4teachers wird von einer Redaktion aus Lehrern und Journalisten betrieben. Die Seite ist ein gemeinsames Projekt von [4teachers](http://www.4teachers.de/), der Service-Plattform von Lehrern für Lehrer, sowie [der Agentur für Bildungsjournalismus](http://www.xn--agentur-fr-bildungsjournalismus-wid.de/).
+>
+> **Was ist News4teachers?**
+>
+> News4teachers ist eine Nachrichten- und Diskussionsseite, die sich mit seriösen Berichten, Analysen und Kommentaren an pädagogische Profis und die an Bildungsthemen interessierte Öffentlichkeit richtet. Die Redaktion sichtet täglich die Meldungen aus Politik, Forschung und Gesellschaft. Auf die Seite gelangt alles, was für die Bildung wichtig ist. News4teachers bietet also einen aktuellen Überblick über die relevanten Informationen für Lehrer, Erzieher, Schüler und Eltern. Und zwar: unabhängig und überparteilich.
+>
+> **Was ist die Idee hinter News4teachers?**
+>
+> News4teachers fühlt sich dem klassischen Journalismus verpflichtet. Das heißt konkret: Wir unterwerfen uns den publizistischen Grundsätzen des Deutschen Presserats, dem [Pressekodex](https://www.presserat.de/pressekodex/pressekodex/). Informationen, die auf die Seite gelangen, wurden zuvor von der Redaktion mit der gebotenen Sorgfalt geprüft. Quellen werden stets genannt, Meinung und Bericht voneinander getrennt. News4teachers unterliegt zudem einer Chronistenpflicht: Alles, was für die Bildungsdebatte in Deutschland von Bedeutung ist, wird aktuell berichtet. Regelmäßige Nutzer von News4teachers sind also immer im Bild." [@N4T_2022]
+
+```{r}
+#| echo: false
+#| include: false
+options(scipen=999)
+BESUCHER <- 55000
+LK <- 975000
+```
+
+## Inhalte von News4teachers und potenzielle Leserschaft aus Lehrkräften
+
+News4teachers verspricht eine unabhängige und überparteiliche Berichterstattung zu Bildungsthemen, wahrscheinlich auch zum Thema Inklusion. Die Inhalte sind für die Leserschaft kostenfrei (werbefinanziertes Angebot). Die Inhalte von News4teachers sind außerdem speziell auf Lehrkräfte ausgerichtet. Somit kann angenommen werden, dass ein großer Teil der Leserschaft aus Lehrkräften besteht. Die Internetseite News4teachers hatte folgende Besucherzahlen (Jahr 2023): Mai (54000 Personen), Juni (60000 Personen) und Juli und August jeweils 55000 Personen (Zahlen ermittelt mit: <https://neilpatel.com/website-traffic-checker/>). Nehmen wir an, dass die Leserschaft von News4teachers zu 75% aus Lehrkräften aus Deutschland bestünde, dann hätten wir bei einer monatlichen Besucherzahl von `r BESUCHER` Personen eine monatliche Leserschaft von ca. `r BESUCHER * 0.75` Lehrkräften (`r BESUCHER` \* 0,75 = `r BESUCHER * 0.75`). In Deutschland gibt es aber laut Mikrozensus 2022 rund `r LK` Lehrkräfte an allgemeinbildenden Schulen. Die potenzielle News4teachers-Leserschaft aus Lehrkräften (`r BESUCHER * 0.75` Personen) entspräche dann einem Anteil von ca. `r (BESUCHER/LK*100) |> round(2)`% aller Lehrkräfte an allgemeinbildenden Schulen (`r BESUCHER` / `r LK` \* 100 = `r (BESUCHER/LK*100) |> round(2)`%). Im dargestellten Szenario würden die Inhalte von News4teachers also pro Monat ca. `r (BESUCHER/LK*100) |> round(2)`% der Lehrkräfte an allgemeinbildenden Schulen in Deutschland erreichen (5 von 100 Lehrkräften lesen News4teachers). Dies sind aber nur vage Vermutungen zur Reichweite von News4teachers unter Lehrkräften an allgemeinbildenden Schulen in Deutschland, unter der Annahme, dass 75% der Leserschaft von News4teachers aus Lehrkräften bestünde.
+
+News4teachers bieten der Leserschaft die Möglichkeit die Inhalte zu kommentieren und zu diskutieren (@fig-beitrag und @fig-struktur3). Hierfür formuliert die Redaktion spezifische Richtlinien [@N4T_2022]:
+
+> "**Gibt's Regeln für die Leserzuschriften in den Foren?**
+>
+> Grundsätzlich gilt: Niemand hat einen Anspruch darauf, in den Foren zu den einzelnen Artikeln eine eigene Wortmeldung zu veröffentlichen. Die Redaktion legt Wert darauf, nur Leserzuschriften zu veröffentlichen, die erkennbar darauf abzielen, einen inhaltlichen Beitrag zur Diskussion des darüberstehenden Artikels zu leisten. Das bedeutet konkret: Auch für Leserzuschriften gelten die publizistischen Grundsätze des Deutschen Presserats, gilt also [der Pressekodex](https://www.presserat.de/pressekodex/pressekodex/).
+>
+> Kurzgefasst:
+>
+> -   Wir veröffentlichen keine Leserbeiträge, in denen ungeprüfte, unbelegte oder falsche Tatsachenbehauptungen verbreitet werden.
+> -   Wir veröffentlichen keine Hetze gegen Menschen oder Menschengruppen.
+> -   Wir veröffentlichen keine Werbung, ob nun für Produkte oder Parteien.
+> -   Und wir veröffentlichen keine Links auf unseriöse Quellen.
+>
+> Wir behalten uns darüber hinaus vor, Leserbriefe, die lediglich der Stimmungsmache dienen, zu löschen. Oder Leserbriefe sinnwahrend zu kürzen." [@N4T_2022]
+
+\[Hier weitere Erläuterungen einfügen\]
+
+![Beitrag zum Thema Inklusion mit 152 Leserkommentaren auf der Internetseite News4teachers (Quelle: <https://www.news4teachers.de/2023/08/schaemt-euch-deutschland-steht-vor-den-vereinten-nationen-am-pranger-weil-es-die-inklusion-an-schulen-verweigert/>)](images/beitrag.png){#fig-beitrag fig-alt="Inhalt zum Thema Inklusion mit 152 Leserkommentaren auf der Internetseite News4teachers"}
+
+# Explorative Forschungsfragen
+
+Die Inhalte von News4teachers und die Kommentare und Diskussionen der Leserschaft eignen sich eventuell zur Beantwortung folgender Forschungsfragen:
+
+-   Auf welche Art und Weise wird das Thema Inklusion auf der Online-Nachrichten- und Diskussionsseite für Lehrkräfte dargestellt?
+-   Auf welche Art und Weise werden die Inhalte zum Thema Inklusion von der Leserschaft kommentiert und diskutiert?
+
+# Web-Scraping
+
+## Struktur und Inhalte der Website
+
+Ziel des Web-Scapings wird es sein, die relevanten Webinhalte von News4teachers automatisiert zu extrahieren. Hierfür müssen wir uns erstmal einen Überblick über die Struktur und Inhalte der Website verschaffen. Die Beiträge auf den Internetseiten von News4teachers haben eine spezifische Struktur mit spezifischen Webinhalten. Für unsere Forschungsfragen mehr oder weniger interessante Webinhalte sind in den Abbildungen kenntlich gemacht (@fig-struktur1, @fig-struktur2 und @fig-struktur3).
+
+![(a) Beitrag auf der Internetseite News4teachers und Struktur der Webinhalte (Quelle: <https://www.news4teachers.de/2023/08/schaemt-euch-deutschland-steht-vor-den-vereinten-nationen-am-pranger-weil-es-die-inklusion-an-schulen-verweigert/>)](images/struktur1.png){#fig-struktur1 fig-alt="Beitrag auf der Internetseite News4teachers und Struktur der Webinhalte"}
+
+![(b) Beitrag auf der Internetseite News4teachers und Struktur der Webinhalte (Quelle: <https://www.news4teachers.de/2023/08/schaemt-euch-deutschland-steht-vor-den-vereinten-nationen-am-pranger-weil-es-die-inklusion-an-schulen-verweigert/>)](images/struktur2.png){#fig-struktur2 fig-alt="Beitrag auf der Internetseite News4teachers und Struktur der Webinhalte"}
+
+![(c) Beitrag auf der Internetseite News4teachers und Struktur der Webinhalte (Quelle: <https://www.news4teachers.de/2023/08/schaemt-euch-deutschland-steht-vor-den-vereinten-nationen-am-pranger-weil-es-die-inklusion-an-schulen-verweigert/>)](images/struktur3.png){#fig-struktur3 fig-alt="Beitrag auf der Internetseite News4teachers und Struktur der Webinhalte"}
+
+\[Erläuterungen zu den Abbildungen und Inhalten hinzufügen\]
+
+## Erster Web-Scraping-Versuch
+
+Für das Web-Scraping nutzen wir das R-Zusatzpaket *rvest*. Der Name des R-Zusatzpaketes ist eine gelungene Anspielung auf das englische Wort *harvest* (ernten, sammeln), denn wir wollen ja Informationen aus dem Internet sammeln (mit R). Das kreative Wortspiel ist auch im Logo des R-Zusatzpaketes visualisiert. Wir müssen das R-Zusatzpaket installieren und laden.
+
+```{r}
+#| eval: false
+install.packages("rvest")
+library(rvest)
+```
+
+![Logo des R-Zusatzpaketes *rvest*](images/logo.png){fig-alt="Logo des R-Zusatzpaketes rvest"}
+
+Für den ersten Web-Scraping-Versuch nutzen wir den Beitrag mit dem Titel *"„Schämt Euch!" -- Deutschland steht vor den Vereinten Nationen am Pranger, weil es die Inklusion an Schulen praktisch verweigert"* (@fig-struktur1). Dies ist der Link zum Beitrag:
+
+<https://www.news4teachers.de/2023/08/schaemt-euch-deutschland-steht-vor-den-vereinten-nationen-am-pranger-weil-es-die-inklusion-an-schulen-verweigert/>
+
+Wir nutzen den Befehl `read_html()` und den entsprechenden Link, um sämtliche Informationen von der Website zu extrahieren.
+
+```{r}
+html <- read_html("https://www.news4teachers.de/2023/08/schaemt-euch-deutschland-steht-vor-den-vereinten-nationen-am-pranger-weil-es-die-inklusion-an-schulen-verweigert/")
+```
+
+Alle Webinhalte sind nun im Objekt `html` hinterlegt. Wir sind allerdings nur an spezifischen Webinhalten interessiert und möchten daher im nächsten Schritt einen spezifischen Textinhalt aus dem Objekt `html` auslesen. Beginnen wir mit einem Textinhalt, welcher sich relativ leicht extrahieren lässt. Wir wollen den Titel des Beitrages extrahieren: *"„Schämt Euch!" -- Deutschland steht vor den Vereinten Nationen am Pranger, weil es die Inklusion an Schulen praktisch verweigert"*. Dabei ist es gar nicht so leicht, einen spezifischen Inhalt wie den Titel zu lokalisieren und auszulesen. Hierfür ist HTML- und CSS-Grundlagenwissen hilfreich (<https://www.w3schools.com/html/>, <https://www.w3schools.com/css/>). Die eigentlichen Textinhalte sind nämlich im HTML-Dokument der Webseite hinterlegt. Ist eine Internetseite im Browser geöffnet, so gelangen wir mit einem Rechtsklick i.d.R. zur Option *"Seitenquelltext anzeigen"* (@fig-quelltext). Dies führt uns zum HTML-Dokument (@fig-html1).
+
+![Seitenquelltext (HTML) anzeigen](images/quelltext.png){#fig-quelltext fig-alt="Seitenquelltext (HTML) anzeigen"}
+
+![HTML-Dokument (Ausschnitt)](images/html1.png){#fig-html1 fig-alt="HTML-Dokument (Ausschnitt)"}
+
+Das HTML-Dokument (@fig-html1) ist riesig (mehr als 10000 Zeilen) und wir müssen etwas stöbern, um den passenden Inhalt zu lokalisieren. Wir sehen z.B. in der Zeile 1297, dass der Titel des Beitrages ein `h1`-HTML-Element ist (header 1: Überschrift erster Ebene). Diese Information benötigen wir, um den Titel des Beitrags gezielt auszulesen. Hierfür nutzen wir den Befehl `html_elements()`.
+
+```{r}
+html |> html_elements("h1")
+```
+
+Herzlichen Glückwunsch! 🥳 Somit haben wir erfolgreich alle Informationen von der Website extrahiert und eine relevante Textstelle (den Titel) ausgelesen.
+
+### Datenstruktur
+
+In @fig-html1 sehen wir, dass anscheinend jeder Beitrag über eine ID verfügt (`id="post-132285"`). Wenn wir in unserem zukünftigen Datensatz mehrere Beiträge abspeichern wollen, dann wird eine ID-Variable zwecks Unterscheidung der Beiträge eine hilfreiche Sache sein. @tbl-idee ist eine erste Idee bezüglich einer möglichen/sinnvollen Datenstruktur.
+
+```{r}
+#| echo: false
+#| label: tbl-idee
+#| tbl-cap: Erste Idee bezüglich einer möglichen/sinnvollen Datenstruktur
+id <- c(132285, "...", "...")
+datum <- c("29. August 2023", "...", "...")
+titel <- c("'Schämt Euch!' -- Deutschland steht vor\nden Vereinten Nationen am Pranger...", "...", "...")
+usw. <- c("...", "...", "...")
+
+data.frame(id, datum, titel, usw.) |>
+  flextable() |>
+  autofit() |>
+  bold(part = "header")
+```
+
+Um die Datenstruktur aus Tab 1 zu realisieren...
+
+```{r}
+#| eval: false
+html |> html_elements("article")
+TEST |> html_attr("id")
+```
+
+# Literatur
