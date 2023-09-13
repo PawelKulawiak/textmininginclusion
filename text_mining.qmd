@@ -32,7 +32,6 @@ format:
 #| include: false
 library(tidyverse)
 library(rvest)
-library(gt)
 library(flextable)
 ```
 
@@ -162,7 +161,7 @@ Alle Webinhalte sind nun im Objekt `html` hinterlegt. Wir sind allerdings nur an
 
 ![HTML-Dokument (Ausschnitt)](images/html1.png){#fig-html1 fig-alt="HTML-Dokument (Ausschnitt)"}
 
-Das HTML-Dokument (@fig-html1) ist riesig (mehr als 10000 Zeilen) und wir müssen etwas stöbern, um den passenden Inhalt zu lokalisieren. Wir sehen z.B. in der Zeile 1297, dass der Titel des Beitrages ein `h1`-HTML-Element ist (header 1: Überschrift erster Ebene). Diese Information benötigen wir, um den Titel des Beitrags gezielt auszulesen. Hierfür nutzen wir den Befehl `html_elements()`.
+Das HTML-Dokument (@fig-html1) ist riesig (mehr als 10000 Zeilen) und wir müssen etwas stöbern, um den passenden Inhalt zu lokalisieren. Wir sehen z.B. in der Zeile 1297, dass der Titel des Beitrages ein `h1`-HTML-Element ist (header 1: Überschrift erster Ebene). Diese Information benötigen wir, um den Titel des Beitrags gezielt auszulesen. Hierfür nutzen wir den Befehl `html_elements("h1")` und übergeben das Objekt `html` an diesen Befehl.
 
 ```{r}
 html |> html_elements("h1")
@@ -189,12 +188,22 @@ data.frame(id, datum, titel, usw.) |>
   bold(part = "header")
 ```
 
-Um die Datenstruktur aus Tab 1 zu realisieren...
+Um die Datenstruktur aus @tbl-idee zu realisieren, müssen wir nun die ID des Beitrags und das Erscheinungsdatum auslesen. Beginnen wir mit der ID. In Abbildung X sehen wir, das die ID (`id="post-132285"`) ein Attribut eines HTML-Elements ist (HTML-Element: `article`). Daher übergeben wir das Objekt `html` zunächst an den Befehl `html_elements("article")` und dann an den Befehl `html_attr("id")` zwecks Auslesung der ID.
 
 ```{r}
-#| eval: false
-html |> html_elements("article")
-TEST |> html_attr("id")
+html |>
+  html_elements("article") |>
+  html_attr("id")
+```
+
+Die ID des Beitrags erscheint mit dem Präfix `post-`. Das Präfix entfernen wir mit dem Befehl `str_remove("post-")` 
+
+```{r}
+html |>
+  html_elements("article") |>
+  html_attr("id") |>
+  str_remove("post-") |>
+  as.numeric()
 ```
 
 # Literatur
