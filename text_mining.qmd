@@ -121,6 +121,8 @@ Die Inhalte von News4teachers und die Kommentare und Diskussionen der Leserschaf
 
 # Web-Scraping
 
+Der erste Arbeitsschritt wird nun das Web-Scraping sein, also die automatisierte Extraktion der Webinhalte (z.B. Textinformationen) von der Webseite News4teachers. Traditionellerweise bzw. altmodischerweise würde man Webinhalte mit der Methode "copy-and-paste" in einen Datensatz übertragen, also z.B. Text von einer Website kopieren und anschließend die kopierte Textinformation in einen Datensatz einfügen (z.B. bei Excel). Dieses Verfahren ist aber fehleranfällig, da z.B. aufgrund mangelnder Konzentration falsche oder unvollständige Textinhalte übertragen werden können. Web-Scraping ist daher als automatisierte Extraktion von Webinhalten die Methode der Wahl. 
+
 ## Struktur und Inhalte der Website
 
 Ziel des Web-Scapings wird es sein, die relevanten Webinhalte von News4teachers automatisiert zu extrahieren. Hierfür müssen wir uns erstmal einen Überblick über die Struktur und Inhalte der Website verschaffen. Die Beiträge auf den Internetseiten von News4teachers haben eine spezifische Struktur mit spezifischen Webinhalten. Für unsere Forschungsfragen mehr oder weniger interessante Webinhalte sind in den Abbildungen kenntlich gemacht (@fig-struktur1, @fig-struktur2 und @fig-struktur3).
