@@ -12,7 +12,7 @@ toc: true
 title-block-banner: true
 language: 
   title-block-author-single: "Autor"
-  title-block-published: "Datum der der letzten Veränderung"
+  title-block-published: "Datum der letzten Veränderung"
 format:
   html:
     embed-resources: false
@@ -57,17 +57,17 @@ Erste Ergebnisse der Medieninhaltsanalyse sind in Form einer Posterpräsentation
 
 Ich möchte die Medieninhaltsanalyse von @lüke2014 replizieren sowie erweitern und mich dabei auf die Textinhalte einer Online-Nachrichten- und Diskussionsseite für Lehrkräfte fokussieren, nämlich News4teachers [@N4T_2022].
 
-## Zielsetzung mit R
+## Zielsetzung mit R: Web-Scraping und Text-Mining
 
 Ich möchte exemplarisch aufzeigen, wie die einzelnen Projektphasen der Medieninhaltsanalyse mit der Programmiersprache R umgesetzt werden können. Hierfür werden wir uns auf zwei wichtige Arbeitsschritte fokussieren:
 
 -   **Web-Scraping**, also eine automatisierte Methode zum Extrahieren der Textinformationen von der Webseite News4teachers.
 
--   **Text-Mining**: Die mittels Web-Scraping gesammelten Textdaten sollen mit Methoden des Text-Minings analysiert werden. Methoden des Text-Minings fokussieren sich auf die Extraktion von nützlichen Informationen aus unstrukturierten Textdaten. Unstrukturierte Textdaten sind Texte, die nicht in einer festen Datenbankstruktur vorliegen, also z.B. Textinhalte von Websiten. Mit Methoden des Text-Minings kann auch der der sentimentale Ton oder die subjektive Meinung in einem Textdokument ermittelt werden. Das Hauptziel der sogenannten Sentimentanalyse besteht darin, die in einem Textdokument geäußerten Emotionen und Ansichten bezüglich eines bestimmten Themas zu identifizieren, in unserem Fall also z.B. geäußerte Meinungen zum Thema Inklusion.
+-   **Text-Mining**: Die mittels Web-Scraping gesammelten Textdaten sollen mit Methoden des Text-Minings analysiert werden. Methoden des Text-Minings fokussieren sich auf die Extraktion von nützlichen Informationen aus unstrukturierten Textdaten. Unstrukturierte Textdaten sind Texte, die nicht in einer festen Datenbankstruktur vorliegen, also z.B. Textinhalte von Webseiten. Mit Methoden des Text-Minings kann auch der sentimentale Ton oder die subjektive Meinung eines Textinhalts ermittelt werden. Das Hauptziel der sogenannten Sentimentanalyse besteht also darin, die in einem Textdokument geäußerten Emotionen und Ansichten bezüglich eines bestimmten Themas zu identifizieren, in unserem Fall also z.B. geäußerte Meinungen zum Thema Inklusion.
 
 # News4teachers: Online-Nachrichten- und Diskussionsseite für Lehrkräfte
 
-Betrachten wir zunächst das Arbeitsmaterial, also die Webinhalte der Webseite News4teachers, und die entsprechende Selbstbeschreibung der Webseite [@N4T_2022]:
+Bevor wir mit dem Web-Scraping und Text-Mining beginnen, betrachten wir zunächst das Arbeitsmaterial, also die Webinhalte der Webseite News4teachers, und die entsprechende Selbstbeschreibung der Webseite [@N4T_2022]:
 
 > "**Wer steckt hinter News4teachers?**
 >
@@ -93,7 +93,7 @@ LK <- 975000
 
 News4teachers verspricht eine unabhängige und überparteiliche Berichterstattung zu Bildungsthemen, wahrscheinlich auch zum Thema Inklusion. Die Inhalte sind für die Leserschaft kostenfrei (werbefinanziertes Angebot). Die Inhalte von News4teachers sind außerdem speziell auf Lehrkräfte ausgerichtet. Somit kann angenommen werden, dass ein großer Teil der Leserschaft aus Lehrkräften besteht. Die Internetseite News4teachers hatte folgende Besucherzahlen (Jahr 2023): Mai (54000 Personen), Juni (60000 Personen) und Juli und August jeweils 55000 Personen (Zahlen ermittelt mit: <https://neilpatel.com/website-traffic-checker/>). Nehmen wir an, dass die Leserschaft von News4teachers zu 75% aus Lehrkräften aus Deutschland bestünde, dann hätten wir bei einer monatlichen Besucherzahl von `r BESUCHER` Personen eine monatliche Leserschaft von ca. `r BESUCHER * 0.75` Lehrkräften (`r BESUCHER` \* 0,75 = `r BESUCHER * 0.75`). In Deutschland gibt es aber laut Mikrozensus 2022 rund `r LK` Lehrkräfte an allgemeinbildenden Schulen. Die potenzielle News4teachers-Leserschaft aus Lehrkräften (`r BESUCHER * 0.75` Personen) entspräche dann einem Anteil von ca. `r (BESUCHER/LK*100) |> round(2)`% aller Lehrkräfte an allgemeinbildenden Schulen (`r BESUCHER` / `r LK` \* 100 = `r (BESUCHER/LK*100) |> round(2)`%). Im dargestellten Szenario würden die Inhalte von News4teachers also pro Monat ca. `r (BESUCHER/LK*100) |> round(2)`% der Lehrkräfte an allgemeinbildenden Schulen in Deutschland erreichen (5 von 100 Lehrkräften lesen News4teachers). Dies sind aber nur vage Vermutungen zur Reichweite von News4teachers unter Lehrkräften an allgemeinbildenden Schulen in Deutschland, unter der Annahme, dass 75% der Leserschaft von News4teachers aus Lehrkräften bestünde.
 
-News4teachers bieten der Leserschaft die Möglichkeit die Inhalte zu kommentieren und zu diskutieren (@fig-beitrag und @fig-struktur3). Hierfür formuliert die Redaktion spezifische Richtlinien [@N4T_2022]:
+Die Webseite News4teachers bieten der Leserschaft die Möglichkeit die Inhalte zu kommentieren und zu diskutieren (@fig-beitrag und @fig-struktur3). Hierfür formuliert die Redaktion spezifische Richtlinien [@N4T_2022]:
 
 > "**Gibt's Regeln für die Leserzuschriften in den Foren?**
 >
@@ -114,16 +114,18 @@ News4teachers bieten der Leserschaft die Möglichkeit die Inhalte zu kommentiere
 
 # Explorative Forschungsfragen
 
-Die Inhalte von News4teachers und die Kommentare und Diskussionen der Leserschaft eignen sich eventuell zur Beantwortung folgender Forschungsfragen:
+Die Inhalte von der Webseite News4teachers und die Kommentare und Diskussionen der Leserschaft eignen sich eventuell zur Beantwortung folgender Forschungsfragen:
 
 -   Auf welche Art und Weise wird das Thema Inklusion auf der Online-Nachrichten- und Diskussionsseite für Lehrkräfte dargestellt?
 -   Auf welche Art und Weise werden die Inhalte zum Thema Inklusion von der Leserschaft kommentiert und diskutiert?
 
 # Web-Scraping
 
-Der erste Arbeitsschritt wird nun das Web-Scraping sein, also die automatisierte Extraktion der Webinhalte (z.B. Textinformationen) von der Webseite News4teachers. Traditionellerweise bzw. altmodischerweise würde man Webinhalte mit der Methode "*copy-and-paste*" in einen Datensatz übertragen, also z.B. Text von einer Website kopieren und anschließend die kopierte Textinformation in einen Datensatz einfügen (z.B. bei Excel). Dieses Verfahren ist aber fehleranfällig, da z.B. die Gefahr besteht, dass aufgrund mangelnder Konzentration falsche oder unvollständige Textinhalte übertragen werden können. Web-Scraping ist daher als automatisierte Extraktion von Webinhalten die Methode der Wahl.
+Der erste Arbeitsschritt, hin zum Text-Mining, also hin zur Medieninhaltsanalyse, wird nun das Web-Scraping sein, also die automatisierte Extraktion der Webinhalte (z.B. Textinformationen) von der Webseite News4teachers. Traditionellerweise bzw. altmodischerweise würde man Webinhalte mit der Methode "*copy-and-paste*" in einen Datensatz übertragen, also z.B. Text von einer Webseite kopieren und anschließend die kopierte Textinformation in einen Datensatz einfügen (z.B. bei Excel). Dieses Verfahren ist aber fehleranfällig, da z.B. die Gefahr besteht, dass aufgrund mangelnder Konzentration falsche oder unvollständige Textinhalte übertragen werden. Web-Scraping ist daher als automatisierte Methode der Extraktion von Webinhalten weniger anfällig für Fehler und somit die Methode der Wahl.
 
-## R-Zusatzpaket *rvest*
+## R-Zusatzpakete
+
+### R-Zusatzpaket *rvest*
 
 Für das Web-Scraping nutzen wir nun das R-Zusatzpaket *rvest*. Der Name des R-Zusatzpaketes ist eine gelungene Anspielung auf das englische Wort *harvest* (ernten, sammeln), denn wir wollen ja Informationen aus dem Internet sammeln (mit R). Das kreative Wortspiel ist auch im Logo des R-Zusatzpaketes visualisiert (@fig-logo). Zunächst müssen wird das R-Zusatzpaket installieren und laden.
 
@@ -139,14 +141,23 @@ Das R-Zusatzpaket *rvest* verfügt über eine umfassende und hilfreiche Online-D
 
 <https://rvest.tidyverse.org/>
 
+### R-Zusatzpaket *tidyverse*
 
-## Struktur und Inhalte der Website
+Das R-Zusatzpaket *tidyverse* ist eine Zusammenstellung unterschiedlicher R-Zusatzpakete. Wir werden an diversen Stellen die herausragende Funktionalität des R-Zusatzpaketes *tidyverse* nutzen. An den entsprechenden Stellen wird ein Verweis auf die R-Zusatzpakete erfolgen. Informationen zum R-Zusatzpaket *tidyverse* findet man hier:
 
-Ziel des Web-Scapings wird es sein, die relevanten Webinhalte von News4teachers automatisiert zu extrahieren. Hierfür müssen wir uns erstmal einen Überblick über die Struktur und Inhalte der Website verschaffen. Die Beiträge auf den Internetseiten von News4teachers haben eine spezifische Struktur mit spezifischen Webinhalten. Wir betrachten den Beitrag mit dem Titel *"„Schämt Euch!" -- Deutschland steht vor den Vereinten Nationen am Pranger, weil es die Inklusion an Schulen praktisch verweigert"*:
+<https://www.tidyverse.org/>
 
-<https://www.news4teachers.de/2023/08/schaemt-euch-deutschland-steht-vor-den-vereinten-nationen-am-pranger-weil-es-die-inklusion-an-schulen-verweigert/>
+Wir installieren und laden das R-Zusatzpaket:
 
-Für unsere Forschungsfragen mehr oder weniger interessante Webinhalte sind in den Abbildungen kenntlich gemacht (@fig-struktur1, @fig-struktur2 und @fig-struktur3).
+```{r}
+#| eval: false
+install.packages("tidyverse")
+library(tidyverse)
+```
+
+## Struktur und Inhalte der Webseite
+
+Ziel des Web-Scapings wird es sein, die relevanten Webinhalte von News4teachers automatisiert zu extrahieren. Hierfür müssen wir uns erstmal einen Überblick über die Struktur und Inhalte der Webseite verschaffen. Die Beiträge auf den Internetseiten von News4teachers haben eine spezifische Struktur mit spezifischen Webinhalten. Wir betrachten den Beitrag mit dem Titel *"„Schämt Euch!" -- Deutschland steht vor den Vereinten Nationen am Pranger, weil es die Inklusion an Schulen praktisch verweigert"*.^[<https://www.news4teachers.de/2023/08/schaemt-euch-deutschland-steht-vor-den-vereinten-nationen-am-pranger-weil-es-die-inklusion-an-schulen-verweigert/>] Für unsere Forschungsfragen mehr oder weniger interessante Webinhalte sind in den Abbildungen kenntlich gemacht (@fig-struktur1, @fig-struktur2 und @fig-struktur3).
 
 ![(a) Beitrag auf der Internetseite News4teachers und Struktur der Webinhalte (Quelle: <https://www.news4teachers.de/2023/08/schaemt-euch-deutschland-steht-vor-den-vereinten-nationen-am-pranger-weil-es-die-inklusion-an-schulen-verweigert/>)](images/struktur1.png){#fig-struktur1 fig-alt="Beitrag auf der Internetseite News4teachers und Struktur der Webinhalte"}
 
@@ -162,19 +173,57 @@ Zuvor haben wir uns einen Überblick über die zu extrahierenden Webinhalte vers
 
 <https://www.news4teachers.de/2023/08/schaemt-euch-deutschland-steht-vor-den-vereinten-nationen-am-pranger-weil-es-die-inklusion-an-schulen-verweigert/>
 
-Wir nutzen den Befehl `read_html()` und den entsprechenden Link, um sämtliche Informationen von der Website zu extrahieren.
+Wir nutzen den Befehl `read_html()` und den entsprechenden Link, um sämtliche Informationen von der Webseite zu extrahieren.
 
 ```{r}
 html <- read_html("https://www.news4teachers.de/2023/08/schaemt-euch-deutschland-steht-vor-den-vereinten-nationen-am-pranger-weil-es-die-inklusion-an-schulen-verweigert/")
 ```
 
-Alle Webinhalte sind nun im Objekt `html` hinterlegt. Wir sind allerdings nur an spezifischen Webinhalten interessiert und möchten daher im nächsten Schritt einen spezifischen Textinhalt aus dem Objekt `html` auslesen. Beginnen wir mit einem Textinhalt, welcher sich relativ leicht extrahieren lässt. Wir wollen den Titel des Beitrages extrahieren: *"„Schämt Euch!" -- Deutschland steht vor den Vereinten Nationen am Pranger, weil es die Inklusion an Schulen praktisch verweigert"*. Dabei ist es gar nicht so leicht, einen spezifischen Inhalt wie den Titel zu lokalisieren und auszulesen. Hierfür ist HTML- und CSS-Grundlagenwissen hilfreich (<https://www.w3schools.com/html/>, <https://www.w3schools.com/css/>). Die eigentlichen Textinhalte sind nämlich im HTML-Dokument der Webseite hinterlegt. Ist eine Internetseite im Browser geöffnet, so gelangen wir mit einem Rechtsklick i.d.R. zur Option *"Seitenquelltext anzeigen"* (@fig-quelltext). Dies führt uns zum HTML-Dokument der Webseite (@fig-html1).
+Alle Webinhalte sind nun im Objekt `html` hinterlegt. Wir sind allerdings nur an spezifischen Webinhalten interessiert und möchten daher im nächsten Schritt einen spezifischen Textinhalt aus dem Objekt `html` auslesen. Beginnen wir mit einem Textinhalt, welcher sich relativ leicht extrahieren lässt. Wir wollen den Titel des Beitrages extrahieren: *"„Schämt Euch!" -- Deutschland steht vor den Vereinten Nationen am Pranger, weil es die Inklusion an Schulen praktisch verweigert"*. Dabei ist es gar nicht so leicht, einen spezifischen Inhalt wie den Titel zu lokalisieren und auszulesen. Hierfür ist HTML-^[<https://developer.mozilla.org/en-US/docs/Web/HTML>] und CSS-Selector-Grundlagenwissen^[<https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Selectors>; *"CSS includes a miniature language for selecting elements on a page called CSS selectors. CSS selectors define patterns for locating HTML elements, and are useful for scraping because they provide a concise way of describing which elements you want to extract."*, Quelle: <https://rvest.tidyverse.org/articles/rvest.html>] hilfreich. Die eigentlichen Textinhalte sind nämlich im HTML-Dokument der Webseite hinterlegt. Ist eine Internetseite im Browser geöffnet, so gelangen wir mit einem Rechtsklick i.d.R. zur Option *"Seitenquelltext anzeigen"* (@fig-quelltext). Dies führt uns zum HTML-Dokument der Webseite (@fig-html1).
 
 ![Seitenquelltext (HTML) anzeigen](images/quelltext.png){#fig-quelltext fig-alt="Seitenquelltext (HTML) anzeigen"}
 
-![HTML-Dokument (Ausschnitt)](images/html1.png){#fig-html1 fig-alt="HTML-Dokument (Ausschnitt)"}
+![HTML-Dokument/Seitenquelltext (Ausschnitt)](images/html1.png){#fig-html1 fig-alt="HTML-Dokument (Ausschnitt)"}
 
-Das HTML-Dokument (@fig-html1) ist riesig (mehr als 10000 Zeilen) und wir müssen etwas stöbern, um den passenden Webinhalt zu lokalisieren. Wir sehen z.B. in der Zeile 1297, dass der Titel des Beitrages ein `h1`-HTML-Element ist (header 1: Überschrift erster Ebene). Diese Information benötigen wir, um den Titel des Beitrags gezielt auszulesen. Hierfür nutzen wir den Befehl `html_elements("h1")` und übergeben das Objekt `html` an diesen Befehl.
+Der HTML-Code aus @fig-html1 ist zwecks besserer Lesbarkeit auch nachfolgend dargestellt: 
+
+```{html}
+<article id="post-132285" class="post-132285 post type-post status-publish format-standard has-post-thumbnail category-leben category-titelthema category-wissenschaft tag-forderschulen tag-inklusion tag-un-behindertenrechtskonvention" itemscope itemtype="https://schema.org/Article">
+    <div class="td-post-header">
+        <!-- category -->
+        <ul class="td-category">
+            <li class="entry-category"><a href="https://www.news4teachers.de/bildung/leben/">Leben</a></li>
+            <li class="entry-category"><a href="https://www.news4teachers.de/bildung/titelthema/">Titelthema</a></li>
+            <li class="entry-category"><a href="https://www.news4teachers.de/bildung/wissenschaft/">Wissen</a></li>
+        </ul>
+        <header class="td-post-title">
+            <h1 class="entry-title">&#8222;Schämt Euch!&#8220; &#8211; Deutschland steht vor den Vereinten Nationen am Pranger, weil es die Inklusion an Schulen praktisch verweigert</h1>
+            <div class="td-module-meta-info">
+                <!-- author -->
+                <!-- date -->
+                <span class="td-post-date">
+                    <time class="entry-date updated td-module-date" datetime="2023-08-29T12:46:06+02:00">29. August 2023</time>
+                </span>
+                <!-- comments -->
+                <div class="td-post-comments">
+                    <a href="https://www.news4teachers.de/2023/08/schaemt-euch-deutschland-steht-vor-den-vereinten-nationen-am-pranger-weil-es-die-inklusion-an-schulen-verweigert/#comments">
+                        <i class="td-icon-comments"></i>150
+                    </a>
+                </div>
+                <!-- views -->
+            </div>
+        </header>
+    </div>
+</article>
+```
+
+Das HTML-Dokument (@fig-html1) ist riesig (mehr als 10000 Zeilen) und wir müssen etwas stöbern, um den passenden Webinhalt zu lokalisieren. Wir sehen z.B. in der Zeile 1297, dass der Titel des Beitrages ein `h1`-HTML-Element^[<https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Heading_Elements>] ist (header 1: Überschrift erster Ebene):
+
+```{html}
+<h1 class="entry-title">&#8222;Schämt Euch!&#8220; &#8211; Deutschland steht vor den Vereinten Nationen am Pranger, weil es die Inklusion an Schulen praktisch verweigert</h1>
+```
+
+Diese Information benötigen wir, um den Titel des Beitrags gezielt auszulesen. Hierfür nutzen wir den Befehl `html_elements("h1")` und übergeben das Objekt `html` an diesen Befehl.
 
 ```{r}
 html |> html_elements("h1")
@@ -188,11 +237,11 @@ html |>
   html_text()
 ```
 
-Herzlichen Glückwunsch! 🥳 Somit haben wir erfolgreich alle Informationen von der Website extrahiert und eine relevante Textstelle (den Titel) ausgelesen.
+Herzlichen Glückwunsch! 🥳 Somit haben wir erfolgreich alle Informationen von der Webseite extrahiert und eine relevante Textstelle (den Titel) ausgelesen.
 
 ### Datenstruktur
 
-In @fig-html1 sehen wir, dass anscheinend jeder Beitrag über eine ID verfügt (`id="post-132285"`). Wenn wir in unserem zukünftigen Datensatz mehrere Beiträge abspeichern wollen, dann wird eine ID-Variable zwecks Unterscheidung der Beiträge eine hilfreiche Sache sein. @tbl-idee ist eine erste Idee bezüglich einer möglichen/sinnvollen Datenstruktur.
+Im Seitenquelltext (@fig-html1) sehen wir, dass anscheinend jeder Beitrag über eine ID verfügt (`id="post-132285"`). Wenn wir in unserem zukünftigen Datensatz mehrere Beiträge abspeichern wollen, dann wird eine ID-Variable zwecks Unterscheidung der Beiträge eine hilfreiche Sache sein. @tbl-idee ist eine erste Idee bezüglich einer möglichen/sinnvollen Datenstruktur. Bei dieser Datenstruktur ignorieren wir der Einfachheit halber ein paar relevante Webinhalte (z.B. Kommentare und Anzahl der Likes).
 
 ```{r}
 #| echo: false
@@ -211,7 +260,19 @@ data.frame(id, datum, titel, zusammenfassung, text, usw.) |>
   bold(part = "header")
 ```
 
-Um die Datenstruktur aus @tbl-idee zu realisieren, müssen wir nun die ID des Beitrags und das Erscheinungsdatum auslesen. Beginnen wir mit der ID. In @fig-html1 sehen wir, das die ID (`id="post-132285"`) ein Attribut eines HTML-Elements ist (HTML-Element: `article`). Daher übergeben wir das Objekt `html` zunächst an den Befehl `html_elements("article")` und dann an den Befehl `html_attr("id")` zwecks Auslesung der ID.
+### Weitere Web-Scraping-Schritte
+
+Um die Datenstruktur aus @tbl-idee zu realisieren, müssen wir nun die ID des Beitrags, das Erscheinungsdatum, die Zusammenfassung und den eigentlichen Haupttext des Beitrages auslesen (den Titel haben wir ja bereits erfolgreich extrahiert). Beginnen wir mit der ID.
+
+#### ID {.unnumbered .unlisted}
+
+In @fig-html1 sehen wir, das die ID (`id="post-132285"`) ein Attribut^[<https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/id>] eines HTML-Elements ist (HTML-Element: `article`^[<https://developer.mozilla.org/en-US/docs/Web/HTML/Element/article>]):
+
+```{html}
+<article id="post-132285" class="post-132285 post type-post status-publish format-standard has-post-thumbnail category-leben category-titelthema category-wissenschaft tag-forderschulen tag-inklusion tag-un-behindertenrechtskonvention" itemscope itemtype="https://schema.org/Article">
+```
+
+Daher übergeben wir das Objekt `html` zunächst an den Befehl `html_elements("article")` und dann an den Befehl `html_attr("id")` zwecks Auslesung der ID.
 
 ```{r}
 html |>
@@ -219,16 +280,71 @@ html |>
   html_attr("id")
 ```
 
-Die ID des Beitrags erscheint mit dem Präfix `post-`. Das Präfix entfernen wir mit dem Befehl `str_remove("post-")` 
+Die ID des Beitrags erscheint mit dem Präfix `"post-"`, eine nicht notwendigerweise nützliche Information. Das Präfix entfernen wir daher mit dem Befehl `str_remove("post-")` und überführen die ID mit dem Befehl `as.numeric()` in ein nummerisches Format. Somit erhalten wir die nummerische ID `132285`.
 
 ```{r}
 html |>
   html_elements("article") |>
   html_attr("id") |>
-  str_remove("post-") |>
+  str_remove("post-") |> # R-Zusatzpaket stringr (tidyverse)
   as.numeric()
 ```
 
-[Hinweis auf tidyverse]
+#### Erscheinungsdatum {.unnumbered .unlisted}
+
+Fahren wir fort mit dem Auslesen des Erscheinungsdatums des Beitrages. Im Quelltext (@fig-html1, Zeile 1301) erscheint folgende Information:
+
+```{html}
+<span class="td-post-date"><time class="entry-date updated td-module-date" datetime="2023-08-29T12:46:06+02:00" >29. August 2023</time></span> 
+```
+Wir sehen, dass das Datum ein HTML-Element ist, nämlich ein `time`-Element^[ <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/time>]. Dieses `time`-Element ist innerhalb eines `span`-Elements^[<https://developer.mozilla.org/en-US/docs/Web/HTML/Element/span>] geschachtelt. Wir können hier also von einer hierarchischen Schachtelung der HTML-Elemente sprechen (`span`, `time`). Entsprechend erfolgt die Extraktion des Datums mit der Übergabe des Objektes `html`, zunächst an den Befehl `html_elements("span")`, und anschließend an den Befehl `html_elements("time")`.
+
+```{r}
+html |>
+  html_elements("span") |>
+  html_elements("time")
+```
+
+Das Ergebnis ist aber nicht ganz befriedigend, da mehrere Datumsangaben extrahiert worden sind, unter anderem das gewünschte Erscheinugsdatum des Beitrages (`2023-08-29`), aber auch andere, nicht relevate Datumsangaben (z.B. `2023-09-17`), welche ebenfalls auf der Webseite erscheinen (@fig-datum).
+
+![Verweis auf einen anderen Beitrag mit nicht relevanter Datumsangabe](images/datum.png){#fig-datum fig-alt="Verweis auf einen anderen Beitrag mit nicht relevanter Datumsangabe"}
+
+Wir müssen daher beim Auslesen noch genauer die hierarchische Position des Erscheinungsdatums definieren. Ein Blick auf @fig-html1 offenbart, dass die beiden HTML-Elemente `span` und `time` innerhalb des bereits bekannten HTML-Elements `article` geschachtelt sind. Diese hierarchische Schachtelung (`article`, `span`, `time`) muss daher beim Auslesen des Erscheingsdatums beachtet werden:
+
+```{r}
+html |>
+  html_elements("article") |>
+  html_elements("span") |>
+  html_elements("time")
+```
+Das Erscheinungsdatum ist in diesem Falle das einzige `time`-Element innerhalb des `article`-Elements. Daher führt auch das Weglassen des `span`-Elements und somit die Anwendung einer reduzierten hierarchische Schachtelung der HTML-Elemente (`article`, `time`) zum gewünschten Erfolg:
+
+```{r}
+html |>
+  html_elements("article") |>
+  html_elements("time")
+```
+
+Auch bei der Datumsangabe wollen wir uns auf die wesentliche Information fokussieren und extrahieren daher die reine Datumsangabe, die dem Attribut `"datetime"` zugeordnet ist. Die Befehlskette wird daher um den Befehl `"html_attr("datetime")"` ergänzt:
+
+```{r}
+html |>
+  html_elements("article") |>
+  html_elements("time") |>
+  html_attr("datetime")
+```
+
+Die Datumsangabe (`"2023-08-29T12:46:06+02:00"`) beinhaltet auch eine für uns nicht relevante Zeitangabe, also die genaue Uhrzeit der Beitragserscheinung (`T12:46:06+02:00`). Die ersten 10 Zeichen (inkl. Bindestriche: `JJJJ-MM-TT`/`2023-08-29`) beibehalten die relevante Datumsangabe. 
+Die nicht relevante Zeitangabe entfernen wir, indem wir lediglich die ersten 10 Zeichen der Datumsangabe beibehalten. Hierfür ergänzen wir die Befehlskette um den Befehl `str_sub(end = 10)`.
+
+```{r}
+html |>
+  html_elements("article") |>
+  html_elements("time") |>
+  html_attr("datetime") |>
+  str_sub(end = 10) # R-Zusatzpaket stringr (tidyverse)
+```
+
+#### Zusammenfassung {.unnumbered .unlisted}
 
 # Literatur
