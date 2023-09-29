@@ -47,13 +47,13 @@ library(flextable)
 
 ![](images/owl.png){width="60%"}
 
-{{< downloadthis text_mining.pdf dname=text_mining label="PDF-Download" icon=file-earmark-pdf type=success >}}
+{{< downloadthis text_mining.pdf dname=text_mining label="PDF-Download" icon=file-earmark-pdf type=success >}} 
 
 \newpage
 
 # Vorwort
 
-TBA
+TBA -
 
 # Einleitung
 
