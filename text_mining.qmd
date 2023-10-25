@@ -24,21 +24,25 @@ format:
   html:
     embed-resources: false
     output-file: "index"
-  #pdf:
-    #include-in-header: 
-      #text: |
-        #\usepackage{lscape}
-        #\newcommand{\blandscape}{\begin{landscape}}
-        #\newcommand{\elandscape}{\end{landscape}}
-    #header-includes: |
-      #\titlehead{\includegraphics[width=6.5in]{images/owl.png}}
-    #geometry:
-      #- top=30mm
-      #- left=30mm
-      #- right=30mm
-      #- bottom=30mm
-      #- heightrounded
-    #fig-pos: H
+#  pdf:
+#    toccolor: "blue"
+#    lof: true
+#    lot: true
+#    link-citations: true
+#    include-in-header: 
+#      text: |
+#        \usepackage{lscape}
+#        \newcommand{\blandscape}{\begin{landscape}}
+#        \newcommand{\elandscape}{\end{landscape}}
+#    header-includes: |
+#      \titlehead{\includegraphics[width=6.5in]{images/owl.png}}
+#    geometry:
+#      - top=30mm
+#      - left=30mm
+#      - right=30mm
+#      - bottom=30mm
+#      - heightrounded
+#    fig-pos: H
 ---
 
 ```{r}
@@ -50,15 +54,30 @@ library(rvest)
 library(flextable)
 ```
 
-![](images/owl.png){width="60%"}
+\newpage
 
-{{< downloadthis text_mining.pdf dname=text_mining label="PDF-Download" icon=file-earmark-pdf type=success >}} 
+![](images/owl.png){width="60%" fig-align="left"}
+
+[![](images/pdf.png){width="25%" fig-align="left"}](https://pawelkulawiak.github.io/textmininginclusion/)
+
+[![](images/online.png){width="25%" fig-align="left"}](https://pawelkulawiak.github.io/textmininginclusion/)
 
 \newpage
 
-# Vorwort
+# Vorwort und Hinweise
 
 TBA -
+
+In einigen Befehlsketten dienen einige R-Befehle lediglich der optischen Optimierung des R-Outputs. Diese nicht relevante R-Befehle sind mit `# don't run` gekennzeichnet und müssen daher nicht ausgeführt werden. Im angeführten Beispiel wäre lediglich die Befehlskette `html |> html_elements("h1") |> html_text()` relevant:
+
+```{r eval = F}
+html |>
+  html_elements("h1") |>
+  html_text() %>% 
+  paste0("[", 1:length(.), "] ", '"', . ,'"') |> # don't run
+  str_wrap(75) |>                                # don't run
+  cat()                                          # don't run
+```
 
 # Einleitung
 
@@ -88,25 +107,27 @@ Ich möchte die Medieninhaltsanalyse von @lüke2014 replizieren sowie erweitern 
 
 Ich möchte exemplarisch aufzeigen, wie die einzelnen Projektphasen der Medieninhaltsanalyse mit der Programmiersprache R umgesetzt werden können. Hierfür werden wir uns auf zwei wichtige Arbeitsschritte fokussieren:
 
--   **Web-Scraping**, also eine automatisierte Methode zum Extrahieren der Textinformationen von der Webseite News4teachers. Eine Einführung in das Thema Web-Scraping mit R bieten @Wickham2023-hx [Kapitel 25]^[<https://r4ds.hadley.nz/webscraping>].
+-   **Web-Scraping**, also eine automatisierte Methode zum Extrahieren der Textinformationen von der Webseite News4teachers. Eine Einführung in das Thema Web-Scraping mit R bieten @Wickham2023-hx [Kapitel 25][^2].
 
 -   **Text-Mining**: Die mittels Web-Scraping gesammelten Textdaten sollen mit Methoden des Text-Minings analysiert werden. Methoden des Text-Minings fokussieren sich auf die Extraktion von nützlichen Informationen aus unstrukturierten Textdaten. Unstrukturierte Textdaten sind Texte, die nicht in einer festen Datenbankstruktur vorliegen, also z.B. Textinhalte von Webseiten. Mit Methoden des Text-Minings kann auch der sentimentale Ton eines Textinhalts bzw. die im Text vermittelte subjektive Meinung analysiert werden. Das Hauptziel der sogenannten Sentimentanalyse besteht also darin, die in einem Textdokument geäußerten Emotionen und Ansichten bezüglich eines bestimmten Themas zu identifizieren, in unserem Fall also z.B. geäußerte Meinungen zum Thema Inklusion. Eine Einführung in das Thema Text-Mining mit R bieten @Silge2017-sp.
+
+[^2]: <https://r4ds.hadley.nz/webscraping>
 
 # News4teachers: Online-Nachrichten- und Diskussionsseite für Lehrkräfte
 
 Bevor wir mit dem Web-Scraping und Text-Mining beginnen, betrachten wir zunächst das Arbeitsmaterial, also die Webinhalte der Webseite News4teachers, und die entsprechende Selbstbeschreibung der Webseite [@N4T_2022]:
 
-> "**Wer steckt hinter News4teachers?**
+> *"**Wer steckt hinter News4teachers?***
 >
-> News4teachers wird von einer Redaktion aus Lehrern und Journalisten betrieben. Die Seite ist ein gemeinsames Projekt von [4teachers](http://www.4teachers.de/), der Service-Plattform von Lehrern für Lehrer, sowie [der Agentur für Bildungsjournalismus](http://www.xn--agentur-fr-bildungsjournalismus-wid.de/).
+> *News4teachers wird von einer Redaktion aus Lehrern und Journalisten betrieben. Die Seite ist ein gemeinsames Projekt von [4teachers](http://www.4teachers.de/), der Service-Plattform von Lehrern für Lehrer, sowie [der Agentur für Bildungsjournalismus](http://www.xn--agentur-fr-bildungsjournalismus-wid.de/).*
 >
-> **Was ist News4teachers?**
+> ***Was ist News4teachers?***
 >
-> News4teachers ist eine Nachrichten- und Diskussionsseite, die sich mit seriösen Berichten, Analysen und Kommentaren an pädagogische Profis und die an Bildungsthemen interessierte Öffentlichkeit richtet. Die Redaktion sichtet täglich die Meldungen aus Politik, Forschung und Gesellschaft. Auf die Seite gelangt alles, was für die Bildung wichtig ist. News4teachers bietet also einen aktuellen Überblick über die relevanten Informationen für Lehrer, Erzieher, Schüler und Eltern. Und zwar: unabhängig und überparteilich.
+> *News4teachers ist eine Nachrichten- und Diskussionsseite, die sich mit seriösen Berichten, Analysen und Kommentaren an pädagogische Profis und die an Bildungsthemen interessierte Öffentlichkeit richtet. Die Redaktion sichtet täglich die Meldungen aus Politik, Forschung und Gesellschaft. Auf die Seite gelangt alles, was für die Bildung wichtig ist. News4teachers bietet also einen aktuellen Überblick über die relevanten Informationen für Lehrer, Erzieher, Schüler und Eltern. Und zwar: unabhängig und überparteilich.*
 >
-> **Was ist die Idee hinter News4teachers?**
+> ***Was ist die Idee hinter News4teachers?***
 >
-> News4teachers fühlt sich dem klassischen Journalismus verpflichtet. Das heißt konkret: Wir unterwerfen uns den publizistischen Grundsätzen des Deutschen Presserats, dem [Pressekodex](https://www.presserat.de/pressekodex/pressekodex/). Informationen, die auf die Seite gelangen, wurden zuvor von der Redaktion mit der gebotenen Sorgfalt geprüft. Quellen werden stets genannt, Meinung und Bericht voneinander getrennt. News4teachers unterliegt zudem einer Chronistenpflicht: Alles, was für die Bildungsdebatte in Deutschland von Bedeutung ist, wird aktuell berichtet. Regelmäßige Nutzer von News4teachers sind also immer im Bild." [@N4T_2022]
+> *News4teachers fühlt sich dem klassischen Journalismus verpflichtet. Das heißt konkret: Wir unterwerfen uns den publizistischen Grundsätzen des Deutschen Presserats, dem [Pressekodex](https://www.presserat.de/pressekodex/pressekodex/). Informationen, die auf die Seite gelangen, wurden zuvor von der Redaktion mit der gebotenen Sorgfalt geprüft. Quellen werden stets genannt, Meinung und Bericht voneinander getrennt. News4teachers unterliegt zudem einer Chronistenpflicht: Alles, was für die Bildungsdebatte in Deutschland von Bedeutung ist, wird aktuell berichtet. Regelmäßige Nutzer von News4teachers sind also immer im Bild."* [@N4T_2022]
 
 Die Redaktion besteht aus folgenden Personen [@N4T_impressum]: Anna Hückelheim, Sonja Mankowsky, Laura Millmann, Nina Odenius, Thomas Zab und Milla Priboschek (Podcast-Redaktion).
 
@@ -128,28 +149,28 @@ AUFGREIFEN: \[<https://www.news4teachers.de/2021/12/liebe-leserin-lieber-leser-e
 
 Die Webseite News4teachers bieten der Leserschaft die Möglichkeit die Inhalte zu kommentieren und zu diskutieren (@fig-beitrag und @fig-struktur3). Hierfür formuliert die Redaktion spezifische Richtlinien [@N4T_2022]:
 
-> "**Gibt's Regeln für die Leserzuschriften in den Foren?**
+> *"**Gibt's Regeln für die Leserzuschriften in den Foren?***
 >
-> Grundsätzlich gilt: Niemand hat einen Anspruch darauf, in den Foren zu den einzelnen Artikeln eine eigene Wortmeldung zu veröffentlichen. Die Redaktion legt Wert darauf, nur Leserzuschriften zu veröffentlichen, die erkennbar darauf abzielen, einen inhaltlichen Beitrag zur Diskussion des darüberstehenden Artikels zu leisten. Das bedeutet konkret: Auch für Leserzuschriften gelten die publizistischen Grundsätze des Deutschen Presserats, gilt also [der Pressekodex](https://www.presserat.de/pressekodex/pressekodex/).
+> *Grundsätzlich gilt: Niemand hat einen Anspruch darauf, in den Foren zu den einzelnen Artikeln eine eigene Wortmeldung zu veröffentlichen. Die Redaktion legt Wert darauf, nur Leserzuschriften zu veröffentlichen, die erkennbar darauf abzielen, einen inhaltlichen Beitrag zur Diskussion des darüberstehenden Artikels zu leisten. Das bedeutet konkret: Auch für Leserzuschriften gelten die publizistischen Grundsätze des Deutschen Presserats, gilt also [der Pressekodex](https://www.presserat.de/pressekodex/pressekodex/).*
 >
-> Kurzgefasst:
+> *Kurzgefasst:*
 >
-> -   Wir veröffentlichen keine Leserbeiträge, in denen ungeprüfte, unbelegte oder falsche Tatsachenbehauptungen verbreitet werden.
-> -   Wir veröffentlichen keine Hetze gegen Menschen oder Menschengruppen.
-> -   Wir veröffentlichen keine Werbung, ob nun für Produkte oder Parteien.
-> -   Und wir veröffentlichen keine Links auf unseriöse Quellen.
+> -   *Wir veröffentlichen keine Leserbeiträge, in denen ungeprüfte, unbelegte oder falsche Tatsachenbehauptungen verbreitet werden.*
+> -   *Wir veröffentlichen keine Hetze gegen Menschen oder Menschengruppen.*
+> -   *Wir veröffentlichen keine Werbung, ob nun für Produkte oder Parteien.*
+> -   *Und wir veröffentlichen keine Links auf unseriöse Quellen.*
 >
-> Wir behalten uns darüber hinaus vor, Leserbriefe, die lediglich der Stimmungsmache dienen, zu löschen. Oder Leserbriefe sinnwahrend zu kürzen." [@N4T_2022]
+> *Wir behalten uns darüber hinaus vor, Leserbriefe, die lediglich der Stimmungsmache dienen, zu löschen. Oder Leserbriefe sinnwahrend zu kürzen."* [@N4T_2022]
 
 \[Hier weitere Erläuterungen einfügen\]
 
 ##### Facebook und Twitter
 
-Die Beiträge werden aber nicht nur unmittelbar auf der Seite von News4teachers kommentiert und diskutiert (@fig-struktur3). Die Diskussion der Beiträge erfolgt auch auf einer externen Seite, nämlich bei Facebook. Innerhalb der Beiträge wird auch auf die externe Diskussion bei Facebook verwiesen (@fig-facebook). Außerdem werden die Beiträge von News4teachers ebenfalls bei Twitter geteilt und diskutiert (<https://twitter.com/News4teachers>). Die Kommentare und Diskussionen bei Facebook und Twitter sollen daher auch bei der vorliegenden Medieninhaltsanalyse Berücksichtigung finden. 
+Die Beiträge werden aber nicht nur unmittelbar auf der Seite von News4teachers kommentiert und diskutiert (@fig-struktur3). Die Diskussion der Beiträge erfolgt auch auf einer externen Seite, nämlich bei Facebook. Innerhalb der Beiträge wird auch auf die externe Diskussion bei Facebook verwiesen (@fig-facebook). Außerdem werden die Beiträge von News4teachers ebenfalls bei Twitter geteilt und diskutiert (<https://twitter.com/News4teachers>). Die Kommentare und Diskussionen bei Facebook und Twitter sollen daher auch bei der vorliegenden Medieninhaltsanalyse Berücksichtigung finden.
 
 ![Beitrag zum Thema Inklusion mit 152 Leserkommentaren auf der Internetseite News4teachers [@N4T_2023]](images/beitrag.png){#fig-beitrag fig-alt="Inhalt zum Thema Inklusion mit 152 Leserkommentaren auf der Internetseite News4teachers"}
 
-![Verweis bei News4teachers auf die Diskussion bei Facebook](images/facebook.png){#fig-facebook fig-alt="Verweis bei News4teachers auf die Diskussion bei Facebook"}
+![Verweis bei News4teachers auf die Diskussion bei Facebook (Diskussion zum Beitrag *"„Schämt Euch!" -- Deutschland steht vor den Vereinten Nationen am Pranger, weil es die Inklusion an Schulen praktisch verweigert"*)](images/facebook.png){#fig-facebook fig-alt="Verweis bei News4teachers auf die Diskussion bei Facebook"}
 
 # Explorative Forschungsfragen
 
@@ -160,40 +181,32 @@ Die Inhalte von der Webseite News4teachers und die Kommentare und Diskussionen d
 
 # Web-Scraping
 
-Der erste Arbeitsschritt, hin zum Text-Mining, also hin zur Medieninhaltsanalyse, wird nun das Web-Scraping sein, also die automatisierte Extraktion der Webinhalte (z.B. Textinformationen) von der Webseite News4teachers. Traditionellerweise bzw. altmodischerweise würde man Webinhalte mit der Methode "*copy-and-paste*" in einen Datensatz übertragen, also z.B. Text von einer Webseite kopieren und anschließend die kopierte Textinformation in einen Datensatz einfügen (z.B. bei Excel). Dieses Verfahren ist aber fehleranfällig, da z.B. die Gefahr besteht, dass aufgrund mangelnder Konzentration falsche oder unvollständige Textinhalte übertragen werden. Web-Scraping ist daher als automatisierte Methode der Extraktion von Webinhalten weniger anfällig für Fehler und somit die Methode der Wahl. Eine Einführung in das Thema Web-Scraping mit R bieten @Wickham2023-hx [Kapitel 25]^[<https://r4ds.hadley.nz/webscraping>].
+Der erste Arbeitsschritt, hin zum Text-Mining, also hin zur Medieninhaltsanalyse, wird nun das Web-Scraping sein, also die automatisierte Extraktion der Webinhalte (z.B. Textinformationen) von der Webseite News4teachers. Traditionellerweise bzw. altmodischerweise würde man Webinhalte mit der Methode "*copy-and-paste*" in einen Datensatz übertragen, also z.B. Text von einer Webseite kopieren und anschließend die kopierte Textinformation in einen Datensatz einfügen (z.B. bei Excel). Dieses Verfahren ist aber fehleranfällig, da z.B. die Gefahr besteht, dass aufgrund mangelnder Konzentration falsche oder unvollständige Textinhalte übertragen werden. Web-Scraping ist daher als automatisierte Methode der Extraktion von Webinhalten weniger anfällig für Fehler und somit die Methode der Wahl. Eine Einführung in das Thema Web-Scraping mit R bieten @Wickham2023-hx [Kapitel 25][^3].
+
+[^3]: <https://r4ds.hadley.nz/webscraping>
 
 ## R-Zusatzpakete
 
-### R-Zusatzpaket *rvest*
+### R-Zusatzpakete *rvest* und *tidyverse*
 
-Für das Web-Scraping nutzen wir nun das R-Zusatzpaket *rvest* [@rvest]. Der Name des R-Zusatzpaketes ist eine gelungene Anspielung auf das englische Wort *harvest* (ernten, sammeln), denn wir wollen ja Informationen aus dem Internet sammeln (mit R). Das kreative Wortspiel ist auch im Logo des R-Zusatzpaketes visualisiert (@fig-logo). Zunächst müssen wird das R-Zusatzpaket installieren und laden.
+Für das Web-Scraping nutzen wir nun das R-Zusatzpaket *rvest* [@rvest]. Der Name des R-Zusatzpaketes ist eine gelungene Anspielung auf das englische Wort *harvest* (ernten, sammeln), denn wir wollen ja Informationen aus dem Internet sammeln (mit R). Das kreative Wortspiel ist auch im Logo des R-Zusatzpaketes visualisiert (@fig-logo). Das R-Zusatzpaket *rvest* ist in der R-Paketsammlung *tidyverse* [@tidyverse] enthalten. *tidyverse* ist eine Zusammenstellung unterschiedlicher R-Zusatzpakete. Wir werden an diversen Stellen die herausragende Funktionalität der Paketsammlung *tidyverse* nutzen. An den entsprechenden Stellen wird ein Verweis auf die *tidyverse*-Zusatzpakete erfolgen. Mit der Installation von *tidyverse* wird auch das Web-Scraping-Zusatzpaket *rvest* installiert (`install.packages("tidyverse")`). Die Paketsammlung *tidyverse* und das darin enthaltene Web-Scraping-Zusatzpaket *rvest* müssen anschließend mit dem Befehl `library(tidyverse, rvest)` geladen werden:
 
 ```{r}
 #| eval: false
-install.packages("rvest")
-library(rvest)
+install.packages("tidyverse")
+library(tidyverse, rvest)
 ```
-
-![Logo des R-Zusatzpaketes *rvest*](images/logo.png){#fig-logo fig-alt="Logo des R-Zusatzpaketes rvest"}
 
 Das R-Zusatzpaket *rvest* verfügt über eine umfassende und hilfreiche Online-Dokumentation:
 
 -   <https://rvest.tidyverse.org/>
 -   <https://r4ds.hadley.nz/webscraping> [@Wickham2023-hx, Kapitel 25]
 
-### R-Zusatzpaket *tidyverse*
-
-Das R-Zusatzpaket *tidyverse* [@tidyverse] ist eine Zusammenstellung unterschiedlicher R-Zusatzpakete. Auch das R-Zusatzpaket *rvest* ist Bestandteil des R-Zusatzpakets *tidyverse*. Wir werden an diversen Stellen die herausragende Funktionalität des R-Zusatzpaketes *tidyverse* nutzen. An den entsprechenden Stellen wird ein Verweis auf die R-Zusatzpakete erfolgen. Informationen zum R-Zusatzpaket *tidyverse* findet man hier:
+Informationen zum Paketsammlung *tidyverse* findet man hier:
 
 <https://www.tidyverse.org/>
 
-Wir installieren und laden das R-Zusatzpaket:
-
-```{r}
-#| eval: false
-install.packages("tidyverse")
-library(tidyverse)
-```
+![Logo des R-Zusatzpaketes *rvest*](images/logo.png){#fig-logo fig-alt="Logo des R-Zusatzpaketes rvest"}
 
 ## Struktur und Inhalte der Webseite
 
@@ -215,18 +228,25 @@ Zuvor haben wir uns einen Überblick über die zu extrahierenden Webinhalte vers
 
 Wir nutzen den Befehl `read_html()` und den entsprechenden Link, um sämtliche Informationen von der Webseite zu extrahieren:
 
-```{r}
+```{r, include = F}
 html <-
   read_html("https://www.news4teachers.de/2023/08/schaemt-euch-deutschland-steht-vor-den-vereinten-nationen-am-pranger-weil-es-die-inklusion-an-schulen-verweigert/")
-
-#html <- read_html("https://www.news4teachers.de/2012/02/im-kern-sind-wir-uns-einig-kein-streit-mehr-uber-die-struktur/")
-
-#html <- read_html("https://www.news4teachers.de/2013/03/studie-hochbegabte-sind-besser-unter-sich/")
-
-#html <- read_html("https://www.news4teachers.de/2019/03/mobbing-ritual-unter-grundschuelern-bringt-politik-in-bewegung/")
 ```
 
-Alle Webinhalte sind nun im Objekt `html` hinterlegt. Wir sind allerdings nur an spezifischen Webinhalten interessiert und möchten daher im nächsten Schritt einen spezifischen Textinhalt aus dem Objekt `html` auslesen. Beginnen wir mit einem Textinhalt, welcher sich relativ leicht extrahieren lässt. Wir wollen den Titel des Beitrages extrahieren: *"„Schämt Euch!" -- Deutschland steht vor den Vereinten Nationen am Pranger, weil es die Inklusion an Schulen praktisch verweigert"*. Dabei ist es gar nicht so leicht, einen spezifischen Inhalt wie den Titel zu lokalisieren und auszulesen. Hierfür ist HTML-[^4] und CSS-Selector-Grundlagenwissen[^5] hilfreich. Die eigentlichen Textinhalte sind nämlich im HTML-Dokument der Webseite hinterlegt (HTML-Quelltext). Ist eine Internetseite im Browser geöffnet, so gelangen wir mit einem Rechtsklick i.d.R. zur Option *"Seitenquelltext anzeigen"* (@fig-quelltext). Dies führt uns zum HTML-Dokument der Webseite (@fig-html1).
+```{r eval = F}
+html <-
+  read_html("https://www.news4teachers.de/2023/08/
+            schaemt-euch-deutschland-steht-vor-den-vereinten-nationen-
+            am-pranger-weil-es-die-inklusion-an-schulen-verweigert/")
+
+# Achtung: Zeilenumbruch ist innerhalb des Links nicht erlaubt!
+#          An dieser Stelle wurden Zeilenumbrüche nur aufgrund des
+#          Platzmangels eingefügt (zwecks Verbesserung der Darstellung).
+#          Bitte entfernen Sie alle Zeilenumbrüche im Link, sodass der
+#          Link bei Ihnen in einer Zeile erscheint.
+```
+
+Alle Webinhalte sind nun im Objekt `html` hinterlegt. Wir sind allerdings nur an spezifischen Webinhalten interessiert und möchten daher im nächsten Schritt einen spezifischen Textinhalt aus dem Objekt `html` auslesen. Wir wollen den Titel des Beitrages extrahieren: *"„Schämt Euch!" -- Deutschland steht vor den Vereinten Nationen am Pranger, weil es die Inklusion an Schulen praktisch verweigert"*. Dabei ist es gar nicht so leicht, einen spezifischen Inhalt wie den Titel zu lokalisieren und auszulesen. Hierfür ist HTML-[^4] und CSS-Selector-Grundlagenwissen[^5] hilfreich. Die eigentlichen Textinhalte sind nämlich im HTML-Dokument der Webseite hinterlegt (HTML-Quelltext). Ist eine Internetseite im Browser geöffnet, so gelangen wir mit einem Rechtsklick i.d.R. zur Option *"Seitenquelltext anzeigen"* (@fig-quelltext). Dies führt uns zum HTML-Dokument bzw. zum HTML-Quelltext der Webseite (@fig-html1).
 
 [^4]: <https://developer.mozilla.org/en-US/docs/Web/HTML>
 
@@ -235,38 +255,56 @@ Alle Webinhalte sind nun im Objekt `html` hinterlegt. Wir sind allerdings nur an
 ![Seitenquelltext (HTML) anzeigen](images/quelltext.png){#fig-quelltext fig-alt="Seitenquelltext (HTML) anzeigen"}
 
 ::: column-body-outset-left
-![HTML-Dokument/Seitenquelltext (Ausschnitt)](images/html1.png){#fig-html1 fig-alt="HTML-Dokument (Ausschnitt)"}
+![HTML-Quelltext (Ausschnitt)](images/html1.png){#fig-html1 fig-alt="HTML-Seitenquelltext (Ausschnitt)"}
 :::
 
-Das HTML-Dokument (@fig-html1) ist riesig (mehr als 10000 Zeilen) und wir müssen etwas stöbern, um den passenden Webinhalt zu lokalisieren. Der HTML-Code aus @fig-html1 ist zwecks besserer Lesbarkeit auch nachfolgend dargestellt:
+Das HTML-Dokument (@fig-html1) ist riesig (mehr als 10000 Zeilen) und wir müssen etwas stöbern, um den passenden Webinhalt zu lokalisieren. Der HTML-Code aus dem HTML-Dokument (@fig-html1) ist zwecks besserer Lesbarkeit auch nachfolgend dargestellt (auszugsweise):
 
 ```{html}
-<article id="post-132285" class="post-132285 post type-post status-publish format-standard has-post-thumbnail category-leben category-titelthema category-wissenschaft tag-forderschulen tag-inklusion tag-un-behindertenrechtskonvention" itemscope itemtype="https://schema.org/Article">
-    <div class="td-post-header">
-        <!-- category -->
-        <ul class="td-category">
-            <li class="entry-category"><a href="https://www.news4teachers.de/bildung/leben/">Leben</a></li>
-            <li class="entry-category"><a href="https://www.news4teachers.de/bildung/titelthema/">Titelthema</a></li>
-            <li class="entry-category"><a href="https://www.news4teachers.de/bildung/wissenschaft/">Wissen</a></li>
-        </ul>
-        <header class="td-post-title">
-            <h1 class="entry-title">&#8222;Schämt Euch!&#8220; &#8211; Deutschland steht vor den Vereinten Nationen am Pranger, weil es die Inklusion an Schulen praktisch verweigert</h1>
-            <div class="td-module-meta-info">
-                <!-- author -->
-                <!-- date -->
-                <span class="td-post-date">
-                    <time class="entry-date updated td-module-date" datetime="2023-08-29T12:46:06+02:00">29. August 2023</time>
-                </span>
-                <!-- comments -->
-                <div class="td-post-comments">
-                    <a href="https://www.news4teachers.de/2023/08/schaemt-euch-deutschland-steht-vor-den-vereinten-nationen-am-pranger-weil-es-die-inklusion-an-schulen-verweigert/#comments">
-                        <i class="td-icon-comments"></i>150
-                    </a>
-                </div>
-                <!-- views -->
-            </div>
-        </header>
-    </div>
+<article id="post-132285" class="post-132285 post type-post status-publish
+  format-standard has-post-thumbnail category-leben category-titelthema
+  category-wissenschaft tag-forderschulen tag-inklusion
+  tag-un-behindertenrechtskonvention" itemscope
+  itemtype="https://schema.org/Article">
+  <div class="td-post-header">
+    <!-- category -->
+    <ul class="td-category">
+      <li class="entry-category">
+        <a href="https://www.news4teachers.de/bildung/leben/">Leben</a>
+      </li>
+      <li class="entry-category">
+        <a href="https://www.news4teachers.de/bildung/titelthema/">
+        Titelthema</a>
+      </li>
+      <li class="entry-category">
+        <a href="https://www.news4teachers.de/bildung/wissenschaft/">
+        Wissen</a>
+      </li>
+    </ul>
+    <header class="td-post-title">
+      <h1 class="entry-title">&#8222;Schämt Euch!&#8220; &#8211;
+        Deutschland steht vor den Vereinten Nationen am Pranger, weil es
+        die Inklusion an Schulen praktisch verweigert
+      </h1>
+      <div class="td-module-meta-info">
+        <!-- author -->
+        <!-- date -->
+        <span class="td-post-date">
+        <time class="entry-date updated td-module-date"
+          datetime="2023-08-29T12:46:06+02:00">29. August 2023</time>
+        </span>
+        <!-- comments -->
+        <div class="td-post-comments">
+          <a href="https://www.news4teachers.de/2023/08/schaemt-euch-
+deutschland-steht-vor-den-vereinten-nationen-am-pranger-weil
+-es-die-inklusion-an-schulen-verweigert/#comments">
+          <i class="td-icon-comments"></i>150
+          </a>
+        </div>
+        <!-- views -->
+      </div>
+    </header>
+  </div>
 </article>
 ```
 
@@ -275,13 +313,16 @@ Wir sehen z.B. in der Zeile 1297 (@fig-html1), dass der Titel des Beitrages ein 
 [^6]: <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Heading_Elements>
 
 ```{html}
-<h1 class="entry-title">&#8222;Schämt Euch!&#8220; &#8211; Deutschland steht vor den Vereinten Nationen am Pranger, weil es die Inklusion an Schulen praktisch verweigert</h1>
+<h1 class="entry-title">&#8222;Schämt Euch!&#8220; &#8211; Deutschland
+  steht vor den Vereinten Nationen am Pranger, weil es die Inklusion an 
+  Schulen praktisch verweigert</h1>
 ```
 
 Diese Information benötigen wir, um den Titel des Beitrags gezielt auszulesen. Hierfür nutzen wir den Befehl `html_elements("h1")` und übergeben das Objekt `html` an diesen Befehl.
 
 ```{r}
-html |> html_elements("h1")
+html |>
+  html_elements("h1")
 ```
 
 Die Information `<h1 class="entry-title">` ist überflüßig, da wir nur am HTML-Textinhalt interessiert sind. Daher extrahieren wir den reinen Textinhalt, also den Titel, mit dem Befehl `html_text()`. Die Befehlskette wird entsprechend erweitert:
@@ -289,14 +330,17 @@ Die Information `<h1 class="entry-title">` ist überflüßig, da wir nur am HTML
 ```{r}
 html |>
   html_elements("h1") |>
-  html_text()
+  html_text() %>% 
+  paste0("[", 1:length(.), "] ", '"', . ,'"') |> # don't run
+  str_wrap(75) |>                                # don't run
+  cat()                                          # don't run
 ```
 
 Herzlichen Glückwunsch! 🥳 Somit haben wir erfolgreich alle Informationen von der Webseite extrahiert und eine relevante Textstelle (den Titel) ausgelesen.
 
 ### Datenstruktur
 
-Im HTML-Seitenquelltext (@fig-html1) sehen wir, dass anscheinend jeder Beitrag über eine ID verfügt (`id="post-132285"`). Wenn wir in unserem zukünftigen Datensatz mehrere Beiträge abspeichern wollen, dann wird eine ID-Variable zwecks Unterscheidung der Beiträge eine hilfreiche Sache sein. @tbl-idee ist eine erste Idee bezüglich einer möglichen/sinnvollen Datenstruktur. Bei dieser Datenstruktur ignorieren wir der Einfachheit halber vorerst ein paar relevante Webinhalte, z.B. Kommentare und Anzahl der Likes ("*Gefällt mir*").
+Im HTML-Code (@fig-html1) sehen wir, dass anscheinend jeder Beitrag über eine ID verfügt (`id="post-132285"`). Wenn wir in unserem zukünftigen Datensatz mehrere Beiträge abspeichern wollen, dann wird eine ID-Variable zwecks Unterscheidung der Beiträge eine hilfreiche Sache sein. @tbl-idee ist eine erste Idee bezüglich einer möglichen/sinnvollen Datenstruktur. Bei dieser Datenstruktur ignorieren wir der Einfachheit halber vorerst ein paar relevante Webinhalte, z.B. Kommentare und Anzahl der Likes ("*Gefällt mir*").
 
 \newpage
 
@@ -330,7 +374,7 @@ data.frame(ID, link, datum, n_kommentare, ort, titel, zusammenfassung, haupttext
 
 \elandscape
 
-[Gefällt mir???]
+\[Gefällt mir???\]
 
 ### Weitere Web-Scraping-Schritte {#sec-schritte}
 
@@ -345,7 +389,11 @@ In @fig-html1 sehen wir, das die ID des Beitrages (`id="post-132285"`) ein Attri
 [^8]: <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/article>
 
 ```{html}
-<article id="post-132285" class="post-132285 post type-post status-publish format-standard has-post-thumbnail category-leben category-titelthema category-wissenschaft tag-forderschulen tag-inklusion tag-un-behindertenrechtskonvention" itemscope itemtype="https://schema.org/Article">
+<article id="post-132285" class="post-132285 post type-post status-publish
+format-standard has-post-thumbnail category-leben category-titelthema
+category-wissenschaft tag-forderschulen tag-inklusion
+tag-un-behindertenrechtskonvention" itemscope
+itemtype="https://schema.org/Article">
 ```
 
 Daher übergeben wir das Objekt `html` zwecks Auslesung der ID zunächst an den Befehl `html_elements("article")` und dann an den Befehl `html_attr("id")`:
@@ -372,13 +420,13 @@ Der Beitrag verfügt über einen langen Link:
 
 <https://www.news4teachers.de/2023/08/schaemt-euch-deutschland-steht-vor-den-vereinten-nationen-am-pranger-weil-es-die-inklusion-an-schulen-verweigert/>
 
-Im HTML-Quelltext ist allerdings auch ein kurzer Link, also ein `shortlink`, ausgewiesen:
+Im HTML-Code ist allerdings auch ein kurzer Link, also ein `shortlink`, ausgewiesen:
 
 ```{html}
 <link rel='shortlink' href='https://www.news4teachers.de/?p=132285' />
 ```
 
-Die ID des Beitrags (`132285`) ist Bestandteil des kurzen Links. Wir können also den ersten Teil des kurzen Links (`"https://www.news4teachers.de/?p="`) mit der ID (`132285`) verbinden, um den gewünschten Kurzlink zu generieren. Hierfür nutzen wir nach der Auslesung der ID den Befehl `paste0("https://www.news4teachers.de/?p=", .)`. Mit dem magrittr-Pipe-Operator (`%>%`[^9]) wird die ID an das zweite Argument des Befehls `paste0("https://www.news4teachers.de/?p=", .)` übergeben, also an die Stelle mit dem Punkt (`.`). Eine Übergabe an das zweite Argument wäre mit der sogenannten base-Pipe (`|>`) nicht möglich, daher nutzen wir die magrittr-Pipe (`%>%`). Die Befehlskette zur Erstellung des Links gestaltet sich somit folgendermaßen:
+Die ID des Beitrags (`132285`) ist Bestandteil des kurzen Links. Wir können also den ersten Teil des kurzen Links (`"https://www.news4teachers.de/?p="`) mit der ID (`132285`) verbinden, um den gewünschten Kurzlink zu generieren. Hierfür nutzen wir nach der Auslesung der ID den Befehl `paste0("https://www.news4teachers.de/?p=", .)`. Mit dem magrittr-Pipe-Operator (`%>%`[^9]) wird die ID an das zweite Argument des Befehls `paste0("https://www.news4teachers.de/?p=", .)` übergeben, also an die Stelle mit dem Punkt (`.`). Eine Übergabe an das zweite Argument wäre mit der sogenannten base-Pipe (`|>`) nicht möglich, daher nutzen wir die magrittr-Pipe (`%>%`) anstatt der base-Pipe (`|>`). Die Befehlskette zur Erstellung des Links gestaltet sich somit folgendermaßen:
 
 [^9]: <https://magrittr.tidyverse.org/>
 
@@ -393,10 +441,11 @@ html |>
 
 #### Erscheinungsdatum
 
-Fahren wir fort mit dem Auslesen des Erscheinungsdatums des Beitrages. Im HTML-Quelltext (@fig-html1, Zeile 1301) erscheint folgende Information:
+Fahren wir fort mit dem Auslesen des Erscheinungsdatums des Beitrages. Im HTML-Code (@fig-html1, Zeile 1301) erscheint folgende Information:
 
 ```{html}
-<span class="td-post-date"><time class="entry-date updated td-module-date" datetime="2023-08-29T12:46:06+02:00" >29. August 2023</time></span> 
+<span class="td-post-date"><time class="entry-date updated td-module-date"
+datetime="2023-08-29T12:46:06+02:00" >29. August 2023</time></span> 
 ```
 
 Wir sehen, dass das Datum ein HTML-Element ist, nämlich ein `time`-Element[^10]. Dieses `time`-Element ist innerhalb eines `span`-Elements[^11] geschachtelt. Wir können hier also von einer hierarchischen Schachtelung der HTML-Elemente sprechen (`span -> time`, @fig-schachtelung_1).
@@ -469,7 +518,7 @@ html |>
   html_attr("datetime")
 ```
 
-Die Datumsangabe (`"2023-08-29T12:46:06+02:00"`) beinhaltet eine für uns nicht relevante Zeitangabe, also die genaue Uhrzeit der Beitragserscheinung (`T12:46:06+02:00`). Die ersten 10 Zeichen (inkl. Bindestriche: `JJJJ-MM-TT`/`2023-08-29`) beibehalten die relevante Datumsangabe. Die nicht relevante Zeitangabe entfernen wir, indem wir lediglich die ersten 10 Zeichen der Datumsangabe beibehalten. Hierfür ergänzen wir die Befehlskette um den Befehl `str_sub(end = 10)`:
+Die Datumsangabe (`"2023-08-29T12:46:06+02:00"`) beinhaltet eine für uns nicht relevante Zeitangabe, also die genaue Uhrzeit der Beitragserscheinung (`T12:46:06+02:00`). Die ersten 10 Zeichen (inkl. Bindestriche: `JJJJ-MM-TT`/`2023-08-29`) beinhalten die relevante Datumsangabe. Die nicht relevante Zeitangabe entfernen wir, indem wir lediglich die ersten 10 Zeichen der Datumsangabe beibehalten. Hierfür ergänzen wir die Befehlskette um den Befehl `str_sub(end = 10)`:
 
 ```{r}
 html |>
@@ -481,22 +530,28 @@ html |>
 
 #### Anzahl der Kommentare
 
-Die Anzahl der Kommentare ist im HTML-Element `div`^[<https://developer.mozilla.org/en-US/docs/Web/HTML/Element/div>] hinterlegt. Und dieses HTML-Element `div` ist durch eine CSS-Klasse[^100] gekennzeichnet (`class="wpd-thread-info"`), wobei die eigentliche Anzahl der Kommentare ein HTML-Attribut ist (`data-comments-count="150"`). Im HTML-Seitenquelltext sieht dies folgendermaßen aus:
+Die Anzahl der Kommentare ist im HTML-Element `div`[^12] hinterlegt. Und dieses HTML-Element `div` ist durch eine CSS-Klasse[^13] gekennzeichnet (`class="wpd-thread-info"`), wobei die eigentliche Anzahl der Kommentare ein HTML-Attribut ist (`data-comments-count="150"`). Im HTML-Seitenquelltext sieht dies folgendermaßen aus:
 
-[^100]: <https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Selectors>; *"CSS includes a miniature language for selecting elements on a page called CSS selectors. CSS selectors define patterns for locating HTML elements, and are useful for scraping because they provide a concise way of describing which elements you want to extract."*, Quelle: <https://rvest.tidyverse.org/articles/rvest.html>
+[^12]: <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/div>
+
+[^13]: <https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Selectors>; *"CSS includes a miniature language for selecting elements on a page called CSS selectors. CSS selectors define patterns for locating HTML elements, and are useful for scraping because they provide a concise way of describing which elements you want to extract."*, Quelle: <https://rvest.tidyverse.org/articles/rvest.html>
 
 ```{html}
-<div class="wpd-thread-info" data-comments-count="150"><span class='wpdtc' title='150'>150</span> Kommentare </div>
+<div class="wpd-thread-info" data-comments-count="150">
+  <span class='wpdtc' title='150'>150</span> Kommentare </div>
 ```
 
-Das Objekt `html` wird daher an den Befehl `html_elements("div")` übergeben. Die anschließende Angabe der CSS-Klasse `"wpd-thread-info"` erfolgt mit einem vorangestellten Punkt (`".wpd-thread-info"`) innerhalb des Befehls `html_elements(".wpd-thread-info")`:
+Das Objekt `html` wird daher an den Befehl `html_elements("div")` übergeben. Die anschließende Angabe der CSS-Klasse `"wpd-thread-info"` erfolgt mit einem vorangestellten Punkt[^14] (`".wpd-thread-info"`) innerhalb des Befehls `html_elements(".wpd-thread-info")`:
+
+[^14]: Die Angabe einer CSS-Klasse muss immer mit einem vorangestellten Punkt erfolgen
 
 ```{r}
 html |>
   html_elements("div") |>
   html_elements(".wpd-thread-info")
 ```
-Die eigentliche Extraktion der Anzahl der Kommentare erfolgt mit der Angabe des entsprechenden HTML-Attributes innerhalb des Befehls `html_attr("data-comments-count")`. Die Anzahl der Kommentare wird mit dem Befehl `as.numeric()` in ein nummerisches Format überführt. Die Befehlskette gestaltet sich daher folgendermaßen:
+
+Die eigentliche Extraktion der Anzahl der Kommentare erfolgt nun mit der Angabe des entsprechenden HTML-Attributes (`"data-comments-count"`) innerhalb des Befehls `html_attr("data-comments-count")`. Anschließend wird die Anzahl der Kommentare mit dem Befehl `as.numeric()` in ein nummerisches Format überführt. Die Befehlskette gestaltet sich daher folgendermaßen:
 
 ```{r}
 html |>
@@ -508,20 +563,23 @@ html |>
 
 #### Ort der Berichterstattung
 
-Die Ortsangabe ist Bestandteil der Zusammenfassung (siehe @fig-struktur1) und die Zusammenfassung ist ein Absatz, i.d.R. der erste Absatz des Beitrages. Für die Extraktion der Ortsangabe ist daher das HTML-Element für Absätze notwendig (`p`[^12]; `p` steht für "paragraph"). Dieses HTML-Element (`p`) ist wie gewohnt innerhalb des HTML-Elements `article` geschachtelt. Zur Extraktion des ersten Absatzes wird diesmal der Befehl `html_element("p")` anstatt `html_elements("p")` genutzt. Der Befehl `html_elements("p")` würde alle Absätze des Beitrages extrahieren. Wir benötigen aber nur den ersten Absatz mit der Ortsangabe und daher nutzen wir diesmal den Befehl `html_element("p")` anstatt `html_elements("p")`. Die Befehlskette gestaltet sich daher wie folgt:
+Die Ortsangabe ist Bestandteil der Zusammenfassung (siehe @fig-struktur1) und die Zusammenfassung ist ein Absatz, i.d.R. der erste Absatz des Beitrages. Für die Extraktion der Ortsangabe ist daher das HTML-Element für Absätze notwendig (`p`[^15]; `p` steht für "paragraph"). Dieses HTML-Element (`p`) ist wie gewohnt innerhalb des HTML-Elements `article` geschachtelt. Zur Extraktion des ersten Absatzes wird diesmal der Befehl `html_element("p")` anstatt `html_elements("p")` genutzt. Der Befehl `html_elements("p")` würde alle Absätze des Beitrages extrahieren. Wir benötigen aber nur den ersten Absatz mit der Ortsangabe und daher nutzen wir diesmal den Befehl `html_element("p")` anstatt `html_elements("p")`. Die Befehlskette gestaltet sich daher wie folgt:
 
-[^12]: <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/p>
+[^15]: <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/p>
 
 ```{r}
 html |>
   html_elements("article") |>
-  html_element("p") |> # html_element anstatt html_elements
-  html_text()
+  html_element("p") |> # html_element() anstatt html_elements()
+  html_text() %>% 
+  paste0("[", 1:length(.), "] ", '"', . ,'"') |> # don't run
+  str_wrap(75) |>                                # don't run
+  cat()                                          # don't run
 ```
 
-Somit sehen wir den Absatz mit der Ortsangabe. Wir benötigen allerdings nur die Ortsangabe, also das erste Wort des Absatzes. Hinter der gewünschten Ortsangabe steht ein Punkt (`GENF.`). Mit dem Befehl `str_extract("[^.]+")`[^13] extrahieren wir alle Zeichen vor dem ersten Punkt, also die Ortsangabe `GENF`. Die Befehlskette gestaltet sich daher wie folgt:
+Somit sehen wir den Absatz mit der Ortsangabe. Wir benötigen allerdings nur die Ortsangabe, also das erste Wort des Absatzes. Hinter der gewünschten Ortsangabe steht ein Punkt (`GENF.`). Mit dem Befehl `str_extract("[^.]+")`[^16] extrahieren wir alle Zeichen vor dem ersten Punkt, also die Ortsangabe `GENF`. Die Befehlskette gestaltet sich daher wie folgt:
 
-[^13]: Bei so einer kryptischen Formel (`"[^.]+"`) handelt es sich um eine sogenannte "*regular expression*" (*regex*). Eine Einführung in diese Thematik findet man hier: <https://r4ds.hadley.nz/regexps> [@Wickham2023-hx, Kapitel 16].
+[^16]: Bei so einer kryptischen Formel (`"[^.]+"`) handelt es sich um eine sogenannte "*regular expression*" (*regex*). Eine Einführung in diese Thematik findet man hier: <https://r4ds.hadley.nz/regexps> [@Wickham2023-hx, Kapitel 16].
 
 ```{r}
 html |>
@@ -538,8 +596,11 @@ Wie soeben bei der Extraktion der Ortsangabe erwähnt, ist die Zusammenfassung d
 ```{r}
 html |>
   html_elements("article") |>
-  html_element("p") |> # html_element anstatt html_elements
-  html_text()
+  html_element("p") |> # html_element() anstatt html_elements()
+  html_text() %>% 
+  paste0("[", 1:length(.), "] ", '"', . ,'"') |> # don't run
+  str_wrap(75) |>                                # don't run
+  cat()                                          # don't run
 ```
 
 Somit erhalten wir die Zusammenfassung mit der Ortsangabe inkl. Punkt (`GENF.`). Nun wollen wir die überflüssige Ortsangabe entfernen und nur die eigentliche Zusammenfassung beibehalten. Dies erreichen wir mit dem Befehl `str_extract("\\.[\\s](.*)")`. Die regex-Formel `"\\.[\\s](.*)"` hat folgende Bedeutung:
@@ -555,7 +616,10 @@ html |>
   html_elements("article") |>
   html_element("p") |> # html_element anstatt html_elements
   html_text() |>
-  str_extract("\\.[\\s](.*)") # R-Zusatzpaket stringr (tidyverse)
+  str_extract("\\.[\\s](.*)") %>% # R-Zusatzpaket stringr (tidyverse) 
+  paste0("[", 1:length(.), "] ", '"', . ,'"') |> # don't run
+  str_wrap(75) |>                                # don't run
+  cat()                                          # don't run
 ```
 
 Die Ortsangabe (`GENF`) wurde erfolgreich entfernt. Der Punkt hinter der Ortsangabe (`GENF.`) wurde allerdings nicht entfernt und bleibt bestehen. Die Zusammenfassung beginnt daher nun mit einem Punkt (`.`) gefolgt von einem Leerzeichen. Wir entfernen den Punkt und das Leerzeichen (`". "`) mit dem Befehl `str_remove(". ")`. Die Befehlskette zur Extraktion der Zusammenfassung gestaltet sich daher folgendermaßen:
@@ -566,49 +630,50 @@ html |>
   html_element("p") |> # html_element anstatt html_elements
   html_text() |>
   str_extract("\\.[\\s](.*)") |> # R-Zusatzpaket stringr (tidyverse)
-  str_remove(". ") # R-Zusatzpaket stringr (tidyverse)
+  str_remove(". ") %>% # R-Zusatzpaket stringr (tidyverse) 
+  paste0("[", 1:length(.), "] ", '"', . ,'"') |> # don't run
+  str_wrap(75) |>                                # don't run
+  cat()                                          # don't run
 ```
 
 #### Haupttext
 
-Kommen wir nun zum Filetstück, also zum eigentlichen Haupttext des Beitrages. Der Beitragstext besteht aus Absätzen. Also können wir, wie bereits gewohnt, das HTML-Element `p` berücksichtigen. Und dieses HTML-Element `p` ist bekannterweise innerhalb des HTML-Elements `article` geschachtelt:
+Kommen wir nun zum Filetstück, also zum eigentlichen Haupttext des Beitrages. Der Beitragstext besteht aus Absätzen. Also können wir, wie bereits gewohnt, das HTML-Element `p` berücksichtigen. Und dieses HTML-Element `p` ist bekannterweise innerhalb des HTML-Elements `article` geschachtelt. Bisher haben wir die eigentliche hierarchische Schachtelung des Haupttextes allerdings nie expliziert. Die Absätze des Haupttextes (`p`) sind nämlich Bestandteil des HTML-Elements `div` und dieses HTML-Element ist wiederum Bestandteil des HTML-Elements `article` (`article -> div -> p`; @fig-schachtelung_4).
 
-[X-PATH erklären und anwenden Überall]
-
-```{r}
-# Seitenquelltext (HTML)
-html |>
-  html_elements(xpath = "//article/div/p[not(descendant::blockquote or iframe)]")
-
-# Text
-html |>
-  html_elements(xpath = "//article/div/p[not(descendant::blockquote or iframe)]") |>
-  html_text()
+```{mermaid}
+%%| label: fig-schachtelung_4
+%%| fig-align: left
+%%| fig-cap: Hierarchische Schachtelung der HTML-Elemente `article`, `div` und `p`
+%%{init: {'theme':'forest'}}%%
+flowchart TB
+  id1(article) --> id2(div) --> id3(p)
 ```
 
-Mit der obigen Befehlskette werden 25 Absätze extrahiert. Aber nur 11 Absätze gehören zum eigentlichen Haupttext (4 bis 11, 14, 18 und 19). Es ist also auch eine Menge Gedöns dabei, also primär nicht relevante Informationen, verstreut innerhalb des Beitrages, z.B. Verweise auf externe Quellen:
+Zur Abbildung dieser hierarchischen Schachtelung nutzen wir diesmal aus Gründen eine sogenannte *xpath*-Angabe[^17] (`"//article/div/p"`). Die *xpath*-Angabe (`"//article/div/p"`) erfolgt innerhalb des Befehls `html_elements(xpath = "//article/div/p")`:
 
-`[2] "#InklusiveBildungJETZT\nWir sind auf dem Place de Nations angekommen! Die #Staatenpruefung für Deutschland beginnt in Kürze.#WirFahrenNachGenf pic.twitter.com/XoBPh69iUO"`
+[^17]: <https://developer.mozilla.org/en-US/docs/Web/XPath>
 
-`[20] "Hier geht es zum vollständigen „Gemeinsamen Bericht der Zivilgesellschaft zum 2. und 3. Bericht der Bundesregierung zur Umsetzung der UN-Behindertenrechtskonvention durch Deutschland“."`
+```{r}
+html |>
+  html_elements(xpath = "//article/div/p") |>
+  html_text() |>
+  str_wrap(75) %>%                                     # don't run
+  paste0("\n", "[", 1:length(.), "] ", '"', . ,'"') |> # don't run
+  cat()                                                # don't run
+```
 
-`[21] "Der Beitrag wird auch auf der Facebook-Seite von News4teachers heiß diskutiert."`
-
-Eigentlich müsste man hier eine Systematik entwickeln, um die inhaltlich nicht relevanten Absätze zu entfernen. Man könnte z.B. alle Absätze entfernen, die die Wörter "*Twitter*" oder "*Facebook*" enthalten. Mit dieser Systematik würde man aber Gefahr laufen, dass man auch fälschlicherweise inhaltlich relevante Absätze entfernt, z.B. einen Absatz, der darauf verweist, dass sich ein Bildungspolitiker bei "*Twitter*" kritisch zum Thema Inklusion geäußert hat. Wir müssen also Absätze mit weniger oder nicht relevanten Inhalten in Kauf nehmen.
-
-Aber wir haben auch drei Absätze ohne sinnvollen Inhalt (`[22] ""`, `[24] ""` und `[25] " "`), da diese Absätze keine Zeichen oder ausschließlich Leerzeichen enthalten. Wir wollen daher Absätze, die keine Zeichen oder ausschließlich Leerzeichen enthalten, entfernen. Hierfür speichern wir vorübergehend alle Absätze im Textformat als Objekt `all_p` ab. Wir Überprüfen anschließend, ob der Textinhalt der Absätze  keine Zeichen oder ausschließlich Leerzeichen enthält (`all_p |> str_detect("^\\s*$")`). Die regex-Formel `"^\\s*$"` hat folgende Bedeutung:
+Mit der obigen Befehlskette werden alle relevanten Absätze extrahiert, aber auch 3 Absätze ohne jeglichen Inhalt (`[15]`, `[16]` und `[17]`). Diese Absätze enthalten keine Zeichen oder ausschließlich Leerzeichen. Wir wollen daher Absätze, die keine Zeichen oder ausschließlich Leerzeichen enthalten, entfernen. Hierfür speichern wir vorübergehend alle Absätze im Textformat als Objekt `all_p` ab. Wir Überprüfen anschließend, ob der Textinhalt der Absätze keine Zeichen oder ausschließlich Leerzeichen enthält (`all_p |> str_detect("^\\s*$")`). Die regex-Formel `"^\\s*$"` hat folgende Bedeutung:
 
 -   `^` Beginne die Suche am Anfang des Absatzes
 -   `\\s*` Suche Leerzeichen bzw. keine Zeichen ("*s*" steht für "*space*")
 -   `$` Führe diese Suche bis zum Ende des Absatzes durch
 
-Das Ergebnis der Überprüfung ist eine `TRUE`-`FALSE`-Aussage für jeden Absatz (`TRUE`: Keine Zeichen oder ausschließlich Leerzeichen; `FALSE`: Andere Zeichen). Diese `TRUE`-`FALSE`-Aussage speichern wir als Objekt `spaces` ab und lassen uns abschließend Absätze anzeigen, welche nicht ausschließlich aus Leerzeichen oder keinen Zeichen bestehen (`all_p[!spaces]`):
+Das Ergebnis der Überprüfung ist für jeden Absatz eine `TRUE`-`FALSE`-Aussage (`TRUE`: Keine Zeichen oder ausschließlich Leerzeichen; `FALSE`: Andere Zeichen). Diese `TRUE`-`FALSE`-Aussage speichern wir als Objekt `spaces` ab und lassen uns abschließend Absätze anzeigen, welche nicht ausschließlich aus Leerzeichen oder keinen Zeichen bestehen (`all_p[!spaces]`):
 
 ```{r}
 all_p <-
   html |>
-  html_elements("article") |>
-  html_elements("p") |>
+  html_elements(xpath = "//article/div/p") |>
   html_text()
 
 all_p |>
@@ -618,119 +683,53 @@ spaces <-
   all_p |>
   str_detect("^\\s*$") # R-Zusatzpaket stringr (tidyverse)
 
-all_p[!spaces]
+all_p[!spaces] |>
+  str_wrap(75) %>%                                     # don't run
+  paste0("\n", "[", 1:length(.), "] ", '"', . ,'"') |> # don't run
+  cat()                                                # don't run
 ```
 
-Fast geschafft! Wir müssen nur noch den ersten Absatz entfernen (`all_p[!spaces] %>% .[-1]`), da der erste Absatz die Zusammenfassung mit Ortsangabe darstellt (`[1] "GENF. „Schämt Euch!“ – so heißt es auf einem Transparent..."`) und daher nicht zum Haupttext gezählt werden kann. Der Punkt vor der eckigen Klammer (`.[-1]`) symbolisiert die Absätze (`all_p[!spaces]`). Bei der Übergabe dieser Absätze nutzen wir, wie zuvor beim Auslesen des Links (@sec-link), die magrittr-Pipe (`%>%`), da nur diese Pipe, und nicht die base-Pipe (`|>`), eine Übergabe an eine Bedingung in eckigen Klammern ermöglicht (`.[-1]`). Alle Absätze werden anschließend mit dem Befehl `list()` in eine Liste überführt. Dies ist daher die schlussendliche Befehlskette:
+Fast geschafft! Wir müssen nur noch den ersten Absatz entfernen (`all_p[!spaces] %>% .[-1]`), da der erste Absatz die Zusammenfassung mit Ortsangabe darstellt (`[1] "GENF. „Schämt Euch!“ – so heißt es auf einem Transparent..."`) und daher nicht zum Haupttext gezählt werden kann. Der Punkt vor der eckigen Klammer (`.[-1]`) symbolisiert die Absätze (`all_p[!spaces]`). Bei der Übergabe dieser Absätze nutzen wir, wie zuvor beim Auslesen des Links (@sec-link), die magrittr-Pipe (`%>%`), da nur diese Pipe, und nicht die base-Pipe (`|>`), eine Übergabe an eine Bedingung in eckigen Klammern ermöglicht (`.[-1]`). Alle Absätze werden anschließend mit dem Befehl `list()` in eine Liste überführt. Dies ist daher die schlussendliche Befehlskette, welche zur Darstellung des Haupttextes führt:
 
-```{r}
+```{r eval = F}
 all_p[!spaces] %>% # Pipe-Operator, R-Zusatzpaket magrittr (tidyverse)
   .[-1] |>
   list()
+
+# R-Output wird aus Platzgründen nicht erneut dargestellt
 ```
-
-<!-- 
-
-Wir müssen diese nicht relevanten Absätze also mittels einer geeigneten Systematik entfernen. Woran erkennen wir die nicht relevanten Absätze? Es sind Verweise auf externe Quellen und diese Verweise enthalten Links auf externe Quellen. Im nächsten Schritt wollen wir daher Absätze mit Links entfernen. Ob in einem Absatz ein Link vorhanden ist, erkennen wir am HTML-Element `a`[^15] (`a` steht für "*anchor*"), z.B. beim Verweis auf externe Inhalte bei Twitter (@fig-struktur1 und @fig-struktur2):
-
-[^15]: <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a>
-
-`"<p dir=\"ltr\" lang=\"de\"><a href=\"https://twitter.com/hashtag/InklusiveBildungJETZT?src=hash&amp;ref_src=twsrc%5Etfw\">#InklusiveBildungJETZT</a><br>\nWir sind auf dem Place de Nations angekommen! Die <a href=\"https://twitter.com/hashtag/Staatenpruefung?src=hash&amp;ref_src=twsrc%5Etfw\">#Staatenpruefung</a> für Deutschland beginnt in Kürze.<a href=\"https://twitter.com/hashtag/WirFahrenNachGenf?src=hash&amp;ref_src=twsrc%5Etfw\">#WirFahrenNachGenf</a> <a href=\"https://t.co/XoBPh69iUO\">pic.twitter.com/XoBPh69iUO</a></p>"`
-
-Das Ende eines Links wird also immer mit dem HTML-Element `</a>` gekennzeichnet sein. Wir wollen nun alle Absätze entfernen, die das HTML-Element `</a>` enthalten[^16]. Hierfür speichern wir vorübergehend alle Absätze im HTML-Format als Objekt `all_p` ab. Wir überführen alle Absätze (`all_p`) mit dem Befehl `as.character()` ins reine Textformat und überprüfen anschließend mit dem Befehl `str_detect("</a>")`, ob Verlinkungen in den Absätzen vorhanden sind. Das Ergebnis ist ein `TRUE`-`FALSE`-Aussage für jeden Absatz (`TRUE`: Link vorhanden; `FALSE`: Link nicht vorhanden). Diese `TRUE`-`FALSE`-Aussage speichern wir als Objekt `link` ab und lassen uns abschließend anzeigen, welche Absätze keine Links enthalten (`all_p[!link] |> html_text()`):
-
-[^16]: Bei diesem Arbeitsschritt habe ich die R-Community um Unterstützung gebeten: <https://stackoverflow.com/questions/77152943/>
-
-```{r}
-all_p <-
-  html |>
-  html_elements("article") |>
-  html_elements("p")
-  
-all_p |>
-  as.character() |>
-  str_detect("</a>") # R-Zusatzpaket stringr (tidyverse)
-
-link <-
-  all_p |>
-  as.character() |>
-  str_detect("</a>") # R-Zusatzpaket stringr (tidyverse)
-
-all_p[!link] |>
-  html_text()
-```
-
-Das Ergebnis ist schon ziemlich befriedigend: Absätze mit Links wurden entfernt. Aber wir haben auch einen inhaltlich relevanten Absatz entfernt. Ein Absatz enthält nämlich einen Link und ist zugleich inhaltlich relevant (@fig-absatz).
-
-![Inhaltlich relevanter Absatz mit Link ("News4teachers berichtete")](images/absatz.png){#fig-absatz fig-alt="Inhaltlich relevanter Absatz mit Link (News4teachers berichtete)"}
-
-Wir müssen unsere Systematik daher erweitern und entsprechende Absätze mit "*News4teachers berichtete*"-Links beibehalten, da diese Absätze inhaltlich relevant erscheinen. Dies erreichen wir, in dem wir alle Absätze (`all_p`) dahingehend überprüfen, ob die Zeichenabfolge `"News4teachers berichtete"` in den Absätzen vorhanden ist (`str_detect("News4teachers berichtete")`). Das Ergebnis dieser Überprüfung ist wieder eine `TRUE`-`FALSE`-Aussage für jeden Absatz (`TRUE`: "*News4teachers berichtete*"-Link vorhanden; `FALSE`: "*News4teachers berichtete*"-Link nicht vorhanden). Diese `TRUE`-`FALSE`-Aussage speichern wir als Objekt `n4t_link` ab und lassen uns abschließend Absätze anzeigen, welche "*News4teachers berichtete*"-Links enthalten, aber keine anderen Links enthalten (`all_p[n4t_link | !link] |> html_text()`):
-
-```{r}
-all_p |>
-  as.character() |>
-  str_detect("News4teachers berichtete") # R-Zusatzpaket stringr (tidyverse)
-
-n4t_link <-
-  all_p |>
-  as.character() |>
-  str_detect("News4teachers berichtete") # R-Zusatzpaket stringr (tidyverse)
-
-all_p[!link | n4t_link] |>
-  html_text()
-```
-
-Das sieht schon ziemlich gut aus. Der inhaltlich relevante Absatz mit “*News4teachers berichtete*”-Link (@fig-absatz) wurde nun beibehalten (`"[4] "Das Deutsche Institut für Menschenrechte ..."`). Aber wir haben zwei Absätze ohne sinnvollen Inhalt (`[13] ""` und `[14] " "`), da diese Absätze keine Zeichen oder ausschließlich Leerzeichen enthalten. Wir wollen daher Absätze, die keine Zeichen oder ausschließlich Leerzeichen enthalten, entfernen. Wir Überprüfen daher, ob der Textinhalt der Absätze (`all_p[!link | n4t_link] |> html_text()`) keine Zeichen oder ausschließlich Leerzeichen enthält (`str_detect("^\\s*$")`). Die regex-Formel `"^\\s*$"` hat folgende Bedeutung:
-
--   `^` Beginne die Suche am Anfang des Absatzes
--   `\\s*` Suche Leerzeichen bzw. keine Zeichen ("*s*" steht für "*space*")
--   `$` Führe diese Suche bis zum Ende des Absatzes durch
-
-Das Ergebnis der Überprüfung ist erneut eine `TRUE`-`FALSE`-Aussage für jeden Absatz (`TRUE`: keine Zeichen oder ausschließlich Leerzeichen). Diese `TRUE`-`FALSE`-Aussage speichern wir als Objekt `spaces` ab und lassen uns abschließend Absätze anzeigen, welche nicht ausschließlich aus Leerzeichen oder keinen Zeichen bestehen (`.[!spaces]`). Der Punkt (`.`) symbolisiert die Absätze, welche zuvor mittels `all_p[!link | n4t_link] |> html_text()` erzeugt worden sind. Bei der Übergabe dieser Absätze nutzen wir, wie zuvor beim Auslesen des Links (@sec-link), die magrittr-Pipe (`%>%`), da nur diese Pipe, und nicht die base-Pipe (`|>`), eine Übergabe an eine Bedingung in eckigen Klammern ermöglicht (`.[!spaces]`):
-
-```{r}
-all_p[!link | n4t_link] |>
-  html_text() |>
-  str_detect("^\\s*$") # R-Zusatzpaket stringr (tidyverse)
-
-spaces <-
-  all_p[!link | n4t_link] |>
-  html_text() |>
-  str_detect("^\\s*$") # R-Zusatzpaket stringr (tidyverse)
-
-all_p[!link | n4t_link] |>
-  html_text() %>% # Pipe-Operator, R-Zusatzpaket magrittr (tidyverse)
-  .[!spaces]
-```
-
-Fast geschafft! Wir müssen nur noch den ersten Absatz entfernen (`.[-1]`), da der erste Absatz die Zusammenfassung mit Ortsangabe darstellt (`[1] "GENF. „Schämt Euch!“ – so heißt es auf einem Transparent..."`) und daher nicht zum Haupttext gezählt werden kann. Dies ist daher die schlussendliche Befehlskette:
-
-```{r}
-all_p[!link | n4t_link] |>
-  html_text() %>% # Pipe-Operator, R-Zusatzpaket magrittr (tidyverse)
-  .[!spaces] %>% # Pipe-Operator, R-Zusatzpaket magrittr (tidyverse)
-  .[-1]
-```
-
--->
 
 ### Datensatz
 
 Die bisher erfolgreich ausgelesenen Informationen (@sec-schritte: ID, Link, Erscheinungsdatum, Anzahl der Kommentare, Ort der Berichterstattung, Titel, Zusammenfassung des Beitrages und Haupttext) können wir nun in einem Datensatz zusammenfassen (vgl. @tbl-idee). Hierfür wiederholen wir pro forma und zwecks Übersichtlichkeit alle bisherigen Arbeitsschritte und speichern jede einzelne Information als Objekt (`ID`, `link`, `datum`, `n_kommentare`, `ort`, `titel`, `zusammenfassung` und `text`):
 
-```{r}
+```{r eval = F}
 # Alle Informationen von der Webseite extrahieren
 
 html <-
-  read_html("https://www.news4teachers.de/2023/08/schaemt-euch-deutschland-steht-vor-den-vereinten-nationen-am-pranger-weil-es-die-inklusion-an-schulen-verweigert/")
+  read_html("https://www.news4teachers.de/2023/08/
+            schaemt-euch-deutschland-steht-vor-den-vereinten-nationen-
+            am-pranger-weil-es-die-inklusion-an-schulen-verweigert/")
 
+# Achtung: Zeilenumbruch ist innerhalb des Links nicht erlaubt!
+#          An dieser Stelle wurden Zeilenumbrüche nur aufgrund des
+#          Platzmangels eingefügt (zwecks Verbesserung der Darstellung).
+#          Bitte entfernen Sie alle Zeilenumbrüche im Link, sodass der
+#          Link bei Ihnen in einer Zeile erscheint.
+```
+
+```{r}
 # ID
 
 ID <-
   html |>
   html_elements("article") |>
-  html_attr("id")
+  html_attr("id") |>
+  str_remove("post-") |> # R-Zusatzpaket stringr (tidyverse)
+  as.numeric()
+```
 
+```{r}
 # Link
 
 link <-
@@ -740,7 +739,9 @@ link <-
   str_remove("post-") |> # R-Zusatzpaket stringr (tidyverse)
   as.numeric() %>% # Pipe-Operator, R-Zusatzpaket magrittr (tidyverse)
   paste0("https://www.news4teachers.de/?p=", .)
+```
 
+```{r}
 # Erscheinungsdatum
 
 datum <-
@@ -749,8 +750,10 @@ datum <-
   html_elements("time") |>
   html_attr("datetime") |>
   str_sub(end = 10) # R-Zusatzpaket stringr (tidyverse)
+```
 
-# Anzahl der kommentare
+```{r}
+# Anzahl der Kommentare
 
 n_kommentare <-
   html |>
@@ -758,7 +761,9 @@ n_kommentare <-
   html_elements(".wpd-thread-info") |>
   html_attr("data-comments-count") |>
   as.numeric()
+```
 
+```{r}
 # Ort der Berichterstattung
 
 ort <-
@@ -767,14 +772,18 @@ ort <-
   html_element("p") |> # html_element anstatt html_elements
   html_text() |>
   str_extract("[^\\.]+") # R-Zusatzpaket stringr (tidyverse)
+```
 
+```{r}
 # Titel
 
 titel <-
   html |>
   html_elements("h1") |>
   html_text()
+```
 
+```{r}
 # Zusammenfassung
 
 zusammenfassung <-
@@ -783,21 +792,23 @@ zusammenfassung <-
   html_element("p") |> # html_element anstatt html_elements
   html_text() |>
   str_extract("\\.[\\s](.*)") |> # R-Zusatzpaket stringr (tidyverse)
-  str_remove(". ") # R-Zusatzpaket stringr (tidyverse)
+  str_remove(". ")
+```
 
+```{r}
 # Haupttext
 
 all_p <-
   html |>
-  html_elements("article") |>
-  html_elements("p") |>
+  html_elements(xpath = "//article/div/p") |>
   html_text()
 
 spaces <-
   all_p |>
   str_detect("^\\s*$") # R-Zusatzpaket stringr (tidyverse)
 
-text <- all_p[!spaces] %>% # Pipe-Operator, R-Zusatzpaket magrittr (tidyverse)
+text <-
+  all_p[!spaces] %>% 
   .[-1] |>
   list()
 ```
@@ -805,39 +816,73 @@ text <- all_p[!spaces] %>% # Pipe-Operator, R-Zusatzpaket magrittr (tidyverse)
 Der Datensatz `n4t_data` wird mit dem Befehl `tibble()` erstellt (der Datensatz ist auch in @tbl-daten1 dargestellt):
 
 ```{r}
-n4t_data <- tibble(ID, link, datum, n_kommentare, ort, titel, zusammenfassung, text) # R-Zusatzpaket tibble (tidyverse)
+n4t_data <-
+  tibble(ID, link, datum, n_kommentare, # R-Zusatzpaket tibble (tidyverse)
+         ort, titel, zusammenfassung, text)
+
 n4t_data
 ```
 
+\blandscape
+
 ```{r echo = F}
 #| label: tbl-daten1
-#| tbl-cap: "Datensatz für einen Beitrag"
+#| tbl-cap: "Datensatz mit einem Beitrag"
 n4t_data |>
+  mutate(n_kommentare = as.character(n_kommentare)) |>
+  mutate(ID = as.character(ID)) |>
   mutate(link = paste0(str_sub(link, start = 1, end = 8), "..."),
          titel = paste0(str_sub(titel, start = 1, end = 20), "..."),
-         zusammenfassung = paste0(str_sub(zusammenfassung, start = 1, end = 20), "...")) |>
+         zusammenfassung =
+           paste0(str_sub(zusammenfassung, start = 1, end = 20), "...")) |>
   flextable() |>
   bold(part = "header") |>
-  footnote(i = 1, j = 8, value = as_paragraph(c("Absätze des Haupttextes sind als Liste hinterlegt")),
-           ref_symbols = c("#"), part = "body", inline = TRUE, sep = "") |>
-  autofit()
+  rotate(rotation = "tbrl", align = "bottom", part = "header") |>
+  height(height = 6, part = "header") |>
+  width(j = 1:8, width = 1) |>
+  footnote(i = 1, j = 8, value =
+             as_paragraph(c("Absätze des Haupttextes sind als Liste hinterlegt")),
+           ref_symbols = c("#"), part = "body", inline = TRUE, sep = "")
 ```
 
-Dieser Datensatz (@tbl-daten1) enthält nun einen Beitrag von der Seite News4teachers. Wir wollen aber mehrere Beiträge in einem Datensatz bündeln. Für den nächsten Beitrag mit dem Titel "*Sparpläne: Inklusion hängt in NRW am seidenen Faden – Lebenshilfe appelliert*"^[<https://www.news4teachers.de/2023/09/sparplaene-inklusion-haengt-in-nrw-am-seidenen-faden-lebenshilfe-appelliert/>] wiederholen wir daher die Arbeitsschritte der Extraktion :
+\elandscape
 
-```{r}
+Dieser Datensatz (@tbl-daten1) enthält nun einen Beitrag von der Seite News4teachers. Wir wollen aber mehrere Beiträge in einem Datensatz bündeln. Für den nächsten Beitrag mit dem Titel "*Sparpläne: Inklusion hängt in NRW am seidenen Faden - Lebenshilfe appelliert*"[^18] wiederholen wir daher die Arbeitsschritte der Extraktion:
+
+[^18]: <https://www.news4teachers.de/2023/09/sparplaene-inklusion-haengt-in-nrw-am-seidenen-faden-lebenshilfe-appelliert/>
+
+```{r echo=FALSE}
+html <-
+  read_html("https://www.news4teachers.de/2023/09/sparplaene-inklusion-haengt-in-nrw-am-seidenen-faden-lebenshilfe-appelliert/")
+```
+
+```{r eval = F}
 # Alle Informationen von der Webseite extrahieren
 
 html <-
-  read_html("https://www.news4teachers.de/2023/09/sparplaene-inklusion-haengt-in-nrw-am-seidenen-faden-lebenshilfe-appelliert/")
+  read_html("https://www.news4teachers.de/2023/09/
+            sparplaene-inklusion-haengt-in-nrw-am-seidenen-faden-
+            lebenshilfe-appelliert/")
 
+# Achtung: Zeilenumbruch ist innerhalb des Links nicht erlaubt!
+#          An dieser Stelle wurden Zeilenumbrüche nur aufgrund des
+#          Platzmangels eingefügt (zwecks Verbesserung der Darstellung).
+#          Bitte entfernen Sie alle Zeilenumbrüche im Link, sodass der
+#          Link bei Ihnen in einer Zeile erscheint.
+```
+
+```{r}
 # ID
 
 ID <-
   html |>
   html_elements("article") |>
-  html_attr("id")
+  html_attr("id") |>
+  str_remove("post-") |> # R-Zusatzpaket stringr (tidyverse)
+  as.numeric()
+```
 
+```{r}
 # Link
 
 link <-
@@ -847,7 +892,9 @@ link <-
   str_remove("post-") |> # R-Zusatzpaket stringr (tidyverse)
   as.numeric() %>% # Pipe-Operator, R-Zusatzpaket magrittr (tidyverse)
   paste0("https://www.news4teachers.de/?p=", .)
+```
 
+```{r}
 # Erscheinungsdatum
 
 datum <-
@@ -856,8 +903,10 @@ datum <-
   html_elements("time") |>
   html_attr("datetime") |>
   str_sub(end = 10) # R-Zusatzpaket stringr (tidyverse)
+```
 
-# Anzahl der kommentare
+```{r}
+# Anzahl der Kommentare
 
 n_kommentare <-
   html |>
@@ -865,7 +914,9 @@ n_kommentare <-
   html_elements(".wpd-thread-info") |>
   html_attr("data-comments-count") |>
   as.numeric()
+```
 
+```{r}
 # Ort der Berichterstattung
 
 ort <-
@@ -874,14 +925,18 @@ ort <-
   html_element("p") |> # html_element anstatt html_elements
   html_text() |>
   str_extract("[^\\.]+") # R-Zusatzpaket stringr (tidyverse)
+```
 
+```{r}
 # Titel
 
 titel <-
   html |>
   html_elements("h1") |>
   html_text()
+```
 
+```{r}
 # Zusammenfassung
 
 zusammenfassung <-
@@ -890,26 +945,28 @@ zusammenfassung <-
   html_element("p") |> # html_element anstatt html_elements
   html_text() |>
   str_extract("\\.[\\s](.*)") |> # R-Zusatzpaket stringr (tidyverse)
-  str_remove(". ") # R-Zusatzpaket stringr (tidyverse)
+  str_remove(". ")
+```
 
+```{r}
 # Haupttext
 
 all_p <-
   html |>
-  html_elements("article") |>
-  html_elements("p") |>
+  html_elements(xpath = "//article/div/p") |>
   html_text()
 
 spaces <-
   all_p |>
   str_detect("^\\s*$") # R-Zusatzpaket stringr (tidyverse)
 
-text <- all_p[!spaces] %>% # Pipe-Operator, R-Zusatzpaket magrittr (tidyverse)
+text <-
+  all_p[!spaces] %>% 
   .[-1] |>
   list()
 ```
 
-Die Informationen aus dem neuen Beitrag werden mit dem Befehl `add_row()` dem Datensatz `n4t_data` hinzugefügt:
+Die Informationen aus dem neuen Beitrag werden dem bereits bestehenden Datensatz `n4t_data` mit dem Befehl `add_row()` hinzugefügt:
 
 ```{r}
 n4t_data <-
@@ -917,27 +974,242 @@ n4t_data <-
   add_row(ID, link, datum, n_kommentare, ort, titel, zusammenfassung, text)
 ```
 
+\blandscape
+
 ```{r echo = F}
 #| label: tbl-daten2
-#| tbl-cap: "Datensatz für zwei Beiträge"
+#| tbl-cap: "Datensatz mit zwei Beiträgen"
 n4t_data |>
+  mutate(n_kommentare = as.character(n_kommentare)) |>
+  mutate(ID = as.character(ID)) |>
   mutate(link = paste0(str_sub(link, start = 1, end = 8), "..."),
          titel = paste0(str_sub(titel, start = 1, end = 20), "..."),
-         zusammenfassung = paste0(str_sub(zusammenfassung, start = 1, end = 20), "...")) |>
+         zusammenfassung =
+           paste0(str_sub(zusammenfassung, start = 1, end = 20), "...")) |>
   flextable() |>
   bold(part = "header") |>
-  footnote(i = 1:2, j = 8, value = as_paragraph(c("Absätze des Haupttextes sind als Liste hinterlegt")),
-           ref_symbols = c("#"), part = "body", inline = TRUE, sep = "") |>
-  autofit()
+  rotate(rotation = "tbrl", align = "bottom", part = "header") |>
+  height(height = 6, part = "header") |>
+  width(j = 1:8, width = 1) |>
+  footnote(i = 1:2, j = 8, value =
+             as_paragraph(c("Absätze des Haupttextes sind als Liste hinterlegt")),
+           ref_symbols = c("#"), part = "body", inline = TRUE, sep = "")
 ```
+
+\elandscape
 
 Der neue Datensatz (@tbl-daten2) enthält nun Informationen für zwei News4teachers-Beiträge. Wir könnten die Arbeitsschritte der Extraktion nun immer wieder wiederholen und somit stetig neue Beiträge zum Datensatz hinzufügen. Bei einer großen Anzahl von Beiträgen wäre dies allerdings ein sehr langwieriger Prozess. Daher müssen wir für die Extraktion, also für das Web-Scraping der Beiträge, eine automatisierte Routine entwickeln.
 
 ## Automatisiertes Web-Scraping
 
-TBA
+### Funktion
+
+Beim Auslesen eines Beitrags von der Webseite News4teachers haben wir bisher stets folgende Arbeitsschritte getätigt (@sec-schritte):
+
+1.  Alle Informationen von der Webseite (Beitragsseite) extrahieren
+2.  ID auslesen
+3.  Link auslesen
+4.  Erscheinungsdatum auslesen
+5.  Anzahl der Kommentare auslesen
+6.  Ort der Berichterstattung auslesen
+7.  Titel auslesen
+8.  Zusammenfassung auslesen
+9.  Haupttext auslesen
+10. Alle Informationen (Arbeitsschritte 1 bis 9) in einem Datensatz zusammenfassen
+
+Diese Arbeitsschritte können wir automatisieren, indem wir die jeweiligen Arbeitsschritte in einer Funktion bündeln. Hierfür schreiben wir eine eigene Funktion [@Wickham2023-hx, Kapitel 26]^[<https://r4ds.hadley.nz/function>]:
+
+```{r}
+web_scrape <-
+  function(url = NULL) {
+    
+    # 1. Alle Informationen von der Webseite (Beitragsseite) extrahieren
+    
+    html <-
+      read_html(url)
+    
+    # 2. ID auslesen
+    
+    ID <-
+      html |>
+      html_elements("article") |>
+      html_attr("id") |>
+      str_remove("post-") |> 
+      as.numeric()
+    
+    # 3. Link auslesen
+    
+    link <-
+      html |>
+      html_elements("article") |>
+      html_attr("id") |>
+      str_remove("post-") |>
+      as.numeric() %>%
+      paste0("https://www.news4teachers.de/?p=", .)
+    
+    # 4. Erscheinungsdatum auslesen
+    
+    datum <-
+      html |>
+      html_elements("article") |>
+      html_elements("time") |>
+      html_attr("datetime") |>
+      str_sub(end = 10)
+    
+    # 5. Anzahl der Kommentare auslesen
+    
+    n_kommentare <-
+      html |>
+      html_elements("div") |>
+      html_elements(".wpd-thread-info") |>
+      html_attr("data-comments-count") |>
+      as.numeric()
+    
+    # 6. Ort der Berichterstattung auslesen
+    
+    ort <-
+      html |>
+      html_elements("article") |>
+      html_element("p") |>
+      html_text() |>
+      str_extract("[^\\.]+")
+    
+    # 7. Titel auslesen
+    
+    titel <-
+      html |>
+      html_elements("h1") |>
+      html_text()
+    
+    # 8. Zusammenfassung auslesen
+    
+    zusammenfassung <-
+      html |>
+      html_elements("article") |>
+      html_element("p") |>
+      html_text() |>
+      str_extract("\\.[\\s](.*)") |>
+      str_remove(". ")
+    
+    # 9. Haupttext auslesen
+
+    all_p <-
+      html |>
+      html_elements(xpath = "//article/div/p") |>
+      html_text()
+    
+    spaces <-
+      all_p |>
+      str_detect("^\\s*$")
+    
+    text <-
+      all_p[!spaces] %>% 
+      .[-1] |>
+      list()
+    
+    # 10. Alle Informationen (Arbeitsschritte 1 bis 9)
+    #     in einem Datensatz zusammenfassen
+    
+    tibble(ID, link, datum, n_kommentare, ort,
+           titel, zusammenfassung, text)
+  }
+```
+
+Wir können nun die neu erstellte Funktion `web_scrape()` nutzen und müssen lediglich den Link eines Beitrags an die Funktion übergeben. Dann werden die Arbeitsschritte 1 bis 10 ausgeführt und wir erhalten einen Datensatz für den neuen Beitrag (@tbl-daten3):
+
+```{r eval = F}
+web_scrape("https://www.news4teachers.de/2023/10/
+           montessori-verband-zur-inklusionsdebatte-in-deutschland-ein-
+           umdenken-ist-noetig/")
+
+# Achtung: Zeilenumbruch ist innerhalb des Links nicht erlaubt!
+#          An dieser Stelle wurden Zeilenumbrüche nur aufgrund des
+#          Platzmangels eingefügt (zwecks Verbesserung der Darstellung).
+#          Bitte entfernen Sie alle Zeilenumbrüche im Link, sodass der
+#          Link bei Ihnen in einer Zeile erscheint.
+```
+
+```{r echo = F}
+web_scrape("https://www.news4teachers.de/2023/10/montessori-verband-zur-inklusionsdebatte-in-deutschland-ein-umdenken-ist-noetig/")
+```
+
+\blandscape
+
+```{r echo = F}
+#| label: tbl-daten3
+#| tbl-cap: "Datensatz erstellt mit der Funktion `web_scrape()`"
+web_scrape("https://www.news4teachers.de/2023/10/montessori-verband-zur-inklusionsdebatte-in-deutschland-ein-umdenken-ist-noetig/") |>
+  mutate(n_kommentare = as.character(n_kommentare)) |>
+  mutate(ID = as.character(ID)) |>
+  mutate(link = paste0(str_sub(link, start = 1, end = 8), "..."),
+         titel = paste0(str_sub(titel, start = 1, end = 20), "..."),
+         zusammenfassung =
+           paste0(str_sub(zusammenfassung, start = 1, end = 20), "...")) |>
+  flextable() |>
+  bold(part = "header") |>
+  rotate(rotation = "tbrl", align = "bottom", part = "header") |>
+  height(height = 6, part = "header") |>
+  width(j = 1:8, width = 1) |>
+  footnote(i = 1, j = 8, value =
+             as_paragraph(c("Absätze des Haupttextes sind als Liste hinterlegt")),
+           ref_symbols = c("#"), part = "body", inline = TRUE, sep = "")
+```
+
+\elandscape
+
+Ein mit der Funktion `web_scrape()` erzeugter Datensatz (@tbl-daten2) kann auch dem bereits erstellten Datensatz `n4t_data` (@tbl-daten3) hinzugefügt werden (@tbl-daten4 = @tbl-daten2 + @tbl-daten3):
+
+```{r eval = F}
+n4t_data <-
+  n4t_data |>
+  bind_rows(web_scrape("https://www.news4teachers.de/2023/10/
+                       montessori-verband-zur-inklusionsdebatte-in-
+                       deutschland-ein-umdenken-ist-noetig/"))
+
+# Achtung: Zeilenumbruch ist innerhalb des Links nicht erlaubt!
+#          An dieser Stelle wurden Zeilenumbrüche nur aufgrund des
+#          Platzmangels eingefügt (zwecks Verbesserung der Darstellung).
+#          Bitte entfernen Sie alle Zeilenumbrüche im Link, sodass der
+#          Link bei Ihnen in einer Zeile erscheint.
+```
+
+```{r echo=FALSE}
+n4t_data <-
+  n4t_data |>
+  bind_rows(web_scrape("https://www.news4teachers.de/2023/10/montessori-verband-zur-inklusionsdebatte-in-deutschland-ein-umdenken-ist-noetig/"))
+
+n4t_data
+```
+
+\blandscape
+
+```{r echo = F}
+#| label: tbl-daten4
+#| tbl-cap: "Datensatz mit drei Beiträgen"
+n4t_data |>
+  mutate(n_kommentare = as.character(n_kommentare)) |>
+  mutate(ID = as.character(ID)) |>
+  mutate(link = paste0(str_sub(link, start = 1, end = 8), "..."),
+         titel = paste0(str_sub(titel, start = 1, end = 20), "..."),
+         zusammenfassung =
+           paste0(str_sub(zusammenfassung, start = 1, end = 20), "...")) |>
+  flextable() |>
+  bold(part = "header") |>
+  rotate(rotation = "tbrl", align = "bottom", part = "header") |>
+  height(height = 6, part = "header") |>
+  width(j = 1:8, width = 1.1) |>
+  footnote(i = 1:3, j = 8, value =
+             as_paragraph(c("Absätze des Haupttextes sind als Liste hinterlegt")),
+           ref_symbols = c("#"), part = "body", inline = TRUE, sep = "")
+```
+
+\elandscape
+
+
 
 # Weiteres
+
+Selector Gadget
 
 Urheber Gesetz
 
